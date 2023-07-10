@@ -1,0 +1,42 @@
+{
+  "name": "ezajil-js-sdk",
+  "version": "1.0.1",
+  "description": "Ezajil Chat Application SDK",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "lint": "eslint src",
+    "build": "webpack --config webpack.config.js",
+    "prepublish": "npm run build",
+    "deploy": "your-deployment-command",
+    "clean": "rm -rf dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omarkad2/ezajil-js-sdk.git"
+  },
+  "keywords": [
+    "ezajil",
+    "sdk",
+    "chat",
+    "javascript"
+  ],
+  "author": "Oussama",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/omarkad2/ezajil-js-sdk/issues"
+  },
+  "homepage": "https://github.com/omarkad2/ezajil-js-sdk#readme",
+  "devDependencies": {
+    "@babel/core": "^7.22.8",
+    "@babel/preset-env": "^7.22.7",
+    "babel-loader": "^9.1.3",
+    "eslint": "^8.44.0",
+    "webpack": "^5.88.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "crypto-js": "^4.1.1"
+  }
+}
