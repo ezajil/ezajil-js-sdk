@@ -1,8 +1,11 @@
 {
   "name": "ezajil-js-sdk",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Ezajil Chat Application SDK",
-  "main": "src/index.js",
+  "main": "dist/ezajil-sdk.min.js",
+  "files": [
+    "dist/ezajil-sdk.min.js"
+  ],  
   "scripts": {
     "start": "node src/index.js",
     "lint": "eslint src",
@@ -33,8 +36,11 @@
     "@babel/preset-env": "^7.22.7",
     "babel-loader": "^9.1.3",
     "eslint": "^8.44.0",
+    "javascript-obfuscator": "^4.0.2",
+    "obfuscator-loader": "^1.1.2",
     "webpack": "^5.88.1",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-obfuscator": "^3.5.1"
   },
   "dependencies": {
     "crypto-js": "^4.1.1"
