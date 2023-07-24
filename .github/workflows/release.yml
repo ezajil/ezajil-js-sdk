@@ -1,0 +1,54 @@
+name: Release New Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        description: release version
+      changelog:
+        required: true
+        description: Changelog
+
+jobs:
+  release:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Increment Version and Update Changelog
+        run: |
+          npm version ${{ github.event.inputs.version }}
+          echo "${{ github.event.inputs.changelog }}" >> CHANGELOG.md
+
+      - name: Commit Changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -a -m "Release ${{ github.event.inputs.version }}" -m "${{ github.event.inputs.changelog }}"
+
+      - name: Push Changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ""
+          body: ${{ github.event.inputs.changelog }}
+          draft: false
+          prerelease: false
+          tag_name: ${{ github.event.inputs.version }}
+
+      - name: Publish Package
+        run: npm publish

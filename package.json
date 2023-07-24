@@ -44,5 +44,9 @@
   },
   "dependencies": {
     "crypto-js": "^4.1.1"
+  },
+  "volta": {
+    "node": "16.20.1",
+    "npm": "8.19.4"
   }
 }
