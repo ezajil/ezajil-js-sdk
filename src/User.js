@@ -10,4 +10,8 @@ export default class User {
         this.lastSession = lastSession;
         this.online = online;
     }
+
+    static currentUser(organizationId, projectId, userId, screenName, avatarUrl, email) {
+        return new User(organizationId, projectId, userId, screenName, avatarUrl, email);
+    }
 }

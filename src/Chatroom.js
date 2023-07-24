@@ -115,4 +115,31 @@ export default class Chatroom {
             })
             .catch((err) => callback(null, err));
     }
+
+    fireUserTyping() {
+        this.transport.send({
+            event: 'user-typing', payload: {
+                organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
+                chatroomId: this.chatroomId, userId: this.currentUser.userId
+            }
+        });
+    }
+
+    markMessageAsDelivered(latestMessageDeliveredTimestamp) {
+        this.transport.send({
+            event: 'messages-delivered', payload: {
+                organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
+                chatroomId: this.chatroomId, latestMessageDelivered: latestMessageDeliveredTimestamp
+            }
+        });
+    }
+
+    markMessageAsRead(latestMessageReadTimestamp) {
+        this.transport.send({
+            event: 'messages-read', payload: {
+                organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
+                chatroomId: this.chatroomId, latestMessageRead: latestMessageReadTimestamp
+            }
+        });
+    }
 }

@@ -230,11 +230,11 @@ export default class Session extends EventEmitter {
             .catch(err => callback(null, err));
     }
 
-    fireUserTyping(chatroomId, userId) {
+    fireUserTyping(chatroomId) {
         this.transport.send({
             event: 'user-typing', payload: {
                 organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
-                chatroomId: chatroomId, userId: userId
+                chatroomId: chatroomId, userId: this.currentUser.userId
             }
         });
     }
