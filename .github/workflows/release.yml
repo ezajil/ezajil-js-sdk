@@ -27,7 +27,7 @@ jobs:
 
       - name: Increment Version and Update Changelog
         run: |
-          npm version ${{ github.event.inputs.version }} --force
+          npm version ${{ github.event.inputs.version }}
           echo "${{ github.event.inputs.changelog }}" >> CHANGELOG.md
 
       - name: Commit Changes
