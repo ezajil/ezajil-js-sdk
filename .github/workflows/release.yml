@@ -23,7 +23,7 @@ jobs:
           node-version: 16
 
       - name: Install Dependencies
-        run: npm install
+        run: npm install --no-save
 
       - name: Increment Version and Update Changelog
         run: |
