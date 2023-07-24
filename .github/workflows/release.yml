@@ -31,8 +31,6 @@ jobs:
 
       - name: Increment Version and Update Changelog
         run: |
-          VERSION="${{ steps.get_version.outputs.version }}"
-          npm --no-git-tag-version version "${VERSION}"
           echo "${{ github.event.inputs.changelog }}" >> CHANGELOG.md
 
       - name: Commit Changes
