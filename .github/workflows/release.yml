@@ -22,12 +22,17 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install Dependencies
+      - name: Install Dependencies & Build
         run: npm ci && npm run build
+
+      - name: Get Current Version
+        id: get_version
+        run: echo "::set-output name=version::$(npm --no-git-tag-version version patch)"
 
       - name: Increment Version and Update Changelog
         run: |
-          npm version ${{ github.event.inputs.version }}
+          VERSION="${{ steps.get_version.outputs.version }}"
+          npm --no-git-tag-version version "${VERSION}"
           echo "${{ github.event.inputs.changelog }}" >> CHANGELOG.md
 
       - name: Commit Changes
@@ -35,7 +40,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git commit -a -m "Release ${{ github.event.inputs.version }}" -m "${{ github.event.inputs.changelog }}"
+          git commit -a -m "Release ${{ steps.get_version.outputs.version }}" -m "${{ github.event.inputs.changelog }}"
 
       - name: Push Changes
         uses: ad-m/github-push-action@master
@@ -49,7 +54,7 @@ jobs:
           body: ${{ github.event.inputs.changelog }}
           draft: false
           prerelease: false
-          tag_name: ${{ github.event.inputs.version }}
+          tag_name: ${{ steps.get_version.outputs.version }}
 
       - name: Publish Package
         run: npm publish
