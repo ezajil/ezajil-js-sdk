@@ -23,11 +23,11 @@ jobs:
           node-version: 16
 
       - name: Install Dependencies
-        run: npm install --no-save
+        run: npm ci && npm run build
 
       - name: Increment Version and Update Changelog
         run: |
-          npm version ${{ github.event.inputs.version }}
+          npm version ${{ github.event.inputs.version }} --force
           echo "${{ github.event.inputs.changelog }}" >> CHANGELOG.md
 
       - name: Commit Changes
