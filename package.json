@@ -1,6 +1,6 @@
 {
   "name": "ezajil-js-sdk",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Ezajil Chat Application SDK",
   "main": "dist/ezajil-sdk.min.js",
   "files": [
