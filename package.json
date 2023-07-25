@@ -1,11 +1,11 @@
 {
   "name": "ezajil-js-sdk",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Ezajil Chat Application SDK",
   "main": "dist/ezajil-sdk.min.js",
   "files": [
     "dist/ezajil-sdk.min.js"
-  ],  
+  ],
   "scripts": {
     "start": "node src/index.js",
     "lint": "eslint src",
