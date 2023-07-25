@@ -7,6 +7,8 @@ on:
         required: true
         description: Changelog
 
+permissions:
+  contents: write
 jobs:
   release:
     runs-on: self-hosted
@@ -34,8 +36,6 @@ jobs:
 
       - name: Commit Changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
           git add .
           git commit -a -m "Release ${{ steps.get_version.outputs.version }}" -m "${{ github.event.inputs.changelog }}"
           git push
