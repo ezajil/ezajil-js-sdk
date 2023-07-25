@@ -3,9 +3,6 @@ name: Release New Version
 on:
   workflow_dispatch:
     inputs:
-      version:
-        required: true
-        description: release version
       changelog:
         required: true
         description: Changelog
@@ -39,7 +36,11 @@ jobs:
           git config --local user.name "GitHub Action"
           git add .
           git commit -a -m "Release ${{ steps.get_version.outputs.version }}" -m "${{ github.event.inputs.changelog }}"
-          git push
+
+      - name: Push Changes
+        run: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
