@@ -38,7 +38,7 @@ jobs:
           git commit -a -m "Release ${{ steps.get_version.outputs.version }}" -m "${{ github.event.inputs.changelog }}"
 
       - name: Push Changes
-        run: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
