@@ -215,18 +215,12 @@ export default class Session extends EventEmitter {
     unsubscribeFromUsersPresence(userIds, callback) {
         const body = JSON.stringify({ "userIds": userIds });
         httpPost(`${process.env.API_URL}/api/user/unsubscribe-users-status`, this.authToken, body)
-            .then(response => {
-                callback(response, null);
-            })
             .catch(err => callback(null, err));
     }
 
     unsubscribeFromAllUsersPresence(callback) {
         const body = JSON.stringify({});
         httpPost(`${process.env.API_URL}/api/user/unsubscribe-all-users-status`, this.authToken, body)
-            .then(response => {
-                callback(response, null);
-            })
             .catch(err => callback(null, err));
     }
 

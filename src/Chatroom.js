@@ -34,6 +34,7 @@ export default class Chatroom {
             .catch(err => callback(null, err));
     }
 
+    // TODO: fix
     getUsers(callback) {
         // Get latest messages
         httpGet(`${process.env.API_URL}/api/chatroom/users/${this.chatroomId}`, this.authToken)
@@ -96,7 +97,7 @@ export default class Chatroom {
             .then(response => {
                 response.json().then(uploadResult => {
                     if (uploadResult.status > 399) {
-                        callback(null, uploadResult.message);
+                        callback(null, uploadResult);
                     } else {
                         let message = {
                             'chatroomId': this.chatroomId,

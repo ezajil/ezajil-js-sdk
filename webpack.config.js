@@ -1,5 +1,6 @@
 const path = require('path');
 const WebpackObfuscator = require('webpack-obfuscator');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'production',
@@ -12,6 +13,9 @@ module.exports = {
     libraryTarget: 'umd',
     umdNamedDefine: true,
   },
+  resolve: {
+    extensions: ['.js', '.ts'],
+  },
   module: {
     rules: [
       {
@@ -19,22 +23,27 @@ module.exports = {
         exclude: /node_modules/,
         use: 'babel-loader',
       },
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        use: 'ts-loader',
+      },
     ],
-  },
-  resolve: {
-    extensions: ['.js'],
   },
   optimization: {
   },
   plugins: [
-    new WebpackObfuscator ({
-        compact: true,
-        controlFlowFlattening: true,
-        controlFlowFlatteningThreshold: 1,
-        numbersToExpressions: true,
-        stringArrayShuffle: true,
-        splitStrings: true,
-        stringArrayThreshold: 1
-    }, [])
+    new CopyPlugin({
+      patterns: [{ from: 'src/types/index.d.ts', to: 'ezajil-sdk.d.ts' }],
+    }),
+    // new WebpackObfuscator ({
+    //     compact: true,
+    //     controlFlowFlattening: true,
+    //     controlFlowFlatteningThreshold: 1,
+    //     numbersToExpressions: true,
+    //     stringArrayShuffle: true,
+    //     splitStrings: true,
+    //     stringArrayThreshold: 1
+    // }, [])
   ],
 };
