@@ -1,6 +1,6 @@
 {
   "name": "ezajil-js-sdk",
-  "version": "1.0.13",
+  "version": "1.0.24",
   "description": "Ezajil Chat Application SDK",
   "main": "dist/ezajil-sdk.min.js",
   "types": "dist/ezajil-sdk.d.ts",
@@ -41,6 +41,7 @@
     "eslint": "^8.44.0",
     "javascript-obfuscator": "^4.0.2",
     "obfuscator-loader": "^1.1.2",
+    "source-map-loader": "^4.0.1",
     "ts-loader": "^9.4.4",
     "typescript": "^5.1.6",
     "webpack": "^5.88.2",

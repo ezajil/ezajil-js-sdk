@@ -6,6 +6,8 @@ declare module 'ezajil-js-sdk' {
         screenName: string;
         avatarUrl: string;
         email: string;
+        online: boolean;
+        lastSession: number;
 
         static currentUser(
             organizationId: string,
@@ -81,6 +83,7 @@ declare module 'ezajil-js-sdk' {
     }
 
     type AppCredentials = {
+        endpoint: string;
         organizationId: string;
         projectId: string;
         secretKey: string;

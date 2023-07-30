@@ -5,9 +5,10 @@ import User from './User';
 
 export default class Chatroom {
 
-    constructor(transport, authToken, chatroomId, currentUser, name, latestMessage, creationDate, creatorId, 
+    constructor(transport, endpoint, authToken, chatroomId, currentUser, name, latestMessage, creationDate, creatorId, 
         single, users, metadata, lastJoined) {
         this.transport = transport;
+        this.endpoint = endpoint;
         this.authToken = authToken;
         this.chatroomId = chatroomId;
         this.currentUser = currentUser;
@@ -24,7 +25,7 @@ export default class Chatroom {
     // TODO: change inputs
     getMessages(from, size, callback) {
         // Get latest messages
-        httpGet(process.env.API_URL + '/api/chatroom/messages/' + this.chatroomId, this.authToken)
+        httpGet(this.endpoint + '/api/chatroom/messages/' + this.chatroomId, this.authToken)
             .then(response => {
                 response.json().then(data => {
                     data.results.sort((m1, m2) => m1.sendingDate - m2.sendingDate);
@@ -37,7 +38,7 @@ export default class Chatroom {
     // TODO: fix
     getUsers(callback) {
         // Get latest messages
-        httpGet(`${process.env.API_URL}/api/chatroom/users/${this.chatroomId}`, this.authToken)
+        httpGet(`${this.endpoint}/api/chatroom/users/${this.chatroomId}`, this.authToken)
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result => new User(userId, screenName, avatarUrl, email, lastSession, online));
@@ -49,7 +50,7 @@ export default class Chatroom {
 
     join(callback) {
         // Get latest messages
-        httpPost(`${process.env.API_URL}/api/chatroom/join/${this.chatroomId}`, this.authToken)
+        httpPost(`${this.endpoint}/api/chatroom/join/${this.chatroomId}`, this.authToken)
             .then(response => {
                 response.json().then(data => {
                     
@@ -93,7 +94,7 @@ export default class Chatroom {
         let formData = new FormData();
         formData.append('file', file);
         // TODO: take size as input
-        uploadFile(process.env.API_URL + '/dam/upload/' + this.chatroomId + '/' + author.userId, this.authToken, formData)
+        uploadFile(this.endpoint + '/dam/upload/' + this.chatroomId + '/' + author.userId, this.authToken, formData)
             .then(response => {
                 response.json().then(uploadResult => {
                     if (uploadResult.status > 399) {

@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import SDKError from './error/SDKError';
 
 const connectionDetails = {
-    wsPath: data => `${process.env.WS_URL}?auth=${data.token}`
+    wsPath: data => `${data.endpoint}?auth=${data.token}`
 };
 
 const defaults = {
@@ -21,10 +21,10 @@ export default class Transport extends EventEmitter {
         super();
         this.pingInterval = 5000;
         this.configuration = Object.assign({}, defaults, config);
-        this._connect();
+        this.connect();
     }
 
-    _connect() {
+    connect() {
         this.conn = new WebSocket(
             connectionDetails.wsPath(this.configuration)
         );
