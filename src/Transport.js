@@ -21,10 +21,10 @@ export default class Transport extends EventEmitter {
         super();
         this.pingInterval = 5000;
         this.configuration = Object.assign({}, defaults, config);
-        this.connect();
+        this._connect();
     }
 
-    connect() {
+    _connect() {
         this.conn = new WebSocket(
             connectionDetails.wsPath(this.configuration)
         );
@@ -53,13 +53,14 @@ export default class Transport extends EventEmitter {
 
     _onClose(closeEvent) {
         this.emit('close', closeEvent.code, closeEvent.reason);
-        clearTimeout(this.timeoutId);
+        clearTimeout(this.pingTimeoutId);
+        this.reconnect();
     }
 
     _onError(err) {
         const error = new SDKError(`Error on WS connection: ${err.message}`, null, err);
         this.emit('error', error);
-        clearTimeout(this.timeoutId);
+        clearTimeout(this.pingTimeoutId);
     }
 
     _onMessage(event) {
@@ -80,7 +81,7 @@ export default class Transport extends EventEmitter {
             if (this.isOpen()) {
                 this.conn.send('');
             }
-            this.timeoutId = setTimeout(() => {
+            this.pingTimeoutId = setTimeout(() => {
                 this.ping();
             }, this.pingInterval);
         }
@@ -110,7 +111,7 @@ export default class Transport extends EventEmitter {
     }
 
     close() {
-        clearTimeout(this.timeoutId);
+        clearTimeout(this.pingTimeoutId);
         if (!this.conn) {
             return;
         }

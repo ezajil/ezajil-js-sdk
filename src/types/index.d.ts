@@ -14,8 +14,8 @@ declare module 'ezajil-js-sdk' {
             projectId: string,
             userId: string,
             screenName: string,
-            avatarUrl: string,
-            email: string
+            avatarUrl?: string,
+            email?: string
         ): User;
     }
 
@@ -26,10 +26,12 @@ declare module 'ezajil-js-sdk' {
     }
 
     export interface Message {
+        chatroomId: string;
+        messageId: string;
         author: string;
         screenName: string;
         content: string;
-        mediaUrls: Map<string, string>;
+        mediaUrls: { [key: string]: string };
         preview: boolean;
         sendingDate: number;
         status: 'NOT_SENT' | 'SENT' | 'DELIVERED' | 'READ';
@@ -64,6 +66,12 @@ declare module 'ezajil-js-sdk' {
         latestMessageRead: number;
     }
 
+    export type PageResult<T> = {
+        results: T[];
+        pagingState: string | null;
+        totalResults: number;
+    }
+
     export class Chatroom {
         chatroomId: string;
         name: string;
@@ -73,13 +81,21 @@ declare module 'ezajil-js-sdk' {
         single: boolean;
         participantIds: string[];
         metadata: Map<string, string>;
-        getMessages(from: number, size: number, callback: (messages: Message[] | null, error: Response | null) => void): void;
+        getMessages(from: number, size: number, callback: (messages: PageResult<Message> | null, error: Response | null) => void): void;
         getUsers(callback: (users: User[] | null, error: Response | null) => void): void;
-        sendChatMessage(textMessage: string): void;
+        sendChatMessage(textMessage: string): Message | null;
         uploadFile(file: File, callback: (messages: Message | null, error: SDKError | Response | null) => void): void;
         fireUserTyping(): void;
         markMessageAsDelivered(latestMessageDeliveredTimestamp: number): void;
         markMessageAsRead(latestMessageReadTimestamp: number): void;
+        close(): void;
+
+        on(event: 'error-message', listener: (code: string, reason: string, chatMessage: string) => void): this;
+        on(event: 'chat-message', listener: (message: Message) => void): this;
+        on(event: 'message-sent', listener: (message: MessageSentEvent) => void): this;
+        on(event: 'user-typing', listener: (message: UserTypingEvent) => void): this;
+        on(event: 'messages-delivered', listener: (message: MessagesDeliveredEvent) => void): this;
+        on(event: 'messages-read', listener: (message: MessagesReadEvent) => void): this;
     }
 
     type AppCredentials = {
@@ -104,11 +120,12 @@ declare module 'ezajil-js-sdk' {
         getChatroomUsers(chatroomId: string, callback: (users: User[] | null, error: Response | null) => void): void;
         getUsers(userIds: string[], callback: (users: User[] | null, error: Response | null) => void): void;
         subscribeToUsersPresence(userIds: string[], callback: (users: User[] | null, error: Response | null) => void): void;
+        subscribeToUsersPresence(users: User[], callback: (users: User[] | null, error: Response | null) => void): void;
         unsubscribeFromUsersPresence(userIds: string[], callback: (error: Response | null) => void): void;
         unsubscribeFromAllUsersPresence(callback: (error: Response | null) => void): void;
         fireUserTyping(chatroomId: string): void;
-        markMessageAsDelivered(message: any): void;
-        markMessageAsRead(chatroomId: string, latestMessage: any): void;
+        markMessageAsDelivered(chatroomId: string, latestMessageDeliveredTimestamp: number): void;
+        markMessageAsRead(chatroomId: string, latestMessageReadTimestamp: number): void;
 
         // Declare additional events emitted by the Session class
         on(event: 'connected', listener: () => void): this;

@@ -37,7 +37,6 @@ export default class Session extends EventEmitter {
         this.transport.on('close', (code, reason) => {
             console.log(`Connection closed: ${code} - ${reason}`);
             this.emit('disconnected', code, reason);
-            this.transport.reconnect();
         });
         this.transport.on('error', (err) => {
             console.error('Connection errored', err);
@@ -219,6 +218,20 @@ export default class Session extends EventEmitter {
             .catch(err => callback(null, err));
     }
 
+    subscribeToUsersPresence(users, callback) {
+        const body = JSON.stringify({ "users": users });
+        httpPost(`${this.apiEndpoint}/api/user/subscribe-users-status`, this.authToken, body)
+            .then(response => {
+                response.json().then(data => {
+                    const users = data.map(result =>
+                        new User(result.organizationId, result.projectId, result.userId, result.screenName, result.avatar, result.email, result.lastSession, result.online));
+                    callback(users, null);
+                });
+            })
+
+            .catch(err => callback(null, err));
+    }
+
     unsubscribeFromUsersPresence(userIds, callback) {
         const body = JSON.stringify({ "userIds": userIds });
         httpPost(`${this.apiEndpoint}/api/user/unsubscribe-users-status`, this.authToken, body)
@@ -240,11 +253,11 @@ export default class Session extends EventEmitter {
         });
     }
 
-    markMessageAsDelivered(message) {
+    markMessageAsDelivered(chatroomId, latestMessageDelivered) {
         this.transport.send({
             event: 'messages-delivered', payload: {
                 organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
-                chatroomId: message.chatroomId, latestMessageDelivered: message.sendingDate
+                chatroomId: chatroomId, latestMessageDelivered: latestMessageDelivered
             }
         });
     }

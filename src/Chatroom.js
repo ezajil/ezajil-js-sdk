@@ -1,12 +1,14 @@
 import { httpGet, httpPost, uploadFile } from './utils/http';
 import { generateUUID } from './utils/util';
+import { EventEmitter } from 'events';
 import SDKError from './error/SDKError';
 import User from './User';
 
-export default class Chatroom {
+export default class Chatroom extends EventEmitter {
 
     constructor(transport, endpoint, authToken, chatroomId, currentUser, name, latestMessage, creationDate, creatorId, 
         single, users, metadata, lastJoined) {
+        super();
         this.transport = transport;
         this.endpoint = endpoint;
         this.authToken = authToken;
@@ -33,6 +35,43 @@ export default class Chatroom {
                 });
             })
             .catch(err => callback(null, err));
+
+            this.transport.on('error-message', (message) => {
+                if (message.chatroomId === this.chatroomId) {
+                    console.log(`error-message: ${JSON.stringify(message)}`);
+                    this.emit('error-message', message.code, message.reason, message.chatMessage);
+                }
+            });
+            this.transport.on('chat-message', (message) => {
+                if (message.chatroomId === this.chatroomId) {
+                    console.log(`chat-message: ${JSON.stringify(message)}`);
+                    this.emit('chat-message', message);
+                }
+            });
+            this.transport.on('message-sent', (message) => {
+                if (message.chatroomId === this.chatroomId) {
+                    console.log(`message-sent: ${JSON.stringify(message)}`);
+                    this.emit('message-sent', message);
+                }
+            });
+            this.transport.on('user-typing', (message) => {
+                if (message.chatroomId === this.chatroomId) {
+                    console.log(`user-typing: ${JSON.stringify(message)}`);
+                    this.emit('user-typing', message);
+                }
+            });
+            this.transport.on('messages-delivered', (message) => {
+                if (message.chatroomId === this.chatroomId) {
+                    console.log(`messages-delivered: ${JSON.stringify(message)}`);
+                    this.emit('messages-delivered', message);
+                }
+            });
+            this.transport.on('messages-read', (message) => {
+                if (message.chatroomId === this.chatroomId) {
+                    console.log(`messages-read: ${JSON.stringify(message)}`);
+                    this.emit('messages-read', message);
+                }
+            });
     }
 
     // TODO: fix
@@ -143,5 +182,9 @@ export default class Chatroom {
                 chatroomId: this.chatroomId, latestMessageRead: latestMessageReadTimestamp
             }
         });
+    }
+
+    close() {
+        this.removeAllListeners();
     }
 }
