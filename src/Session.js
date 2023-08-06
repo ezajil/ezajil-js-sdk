@@ -184,7 +184,8 @@ export default class Session extends EventEmitter {
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
-                        new User(result.organizationId, result.projectId, result.userId, result.screenName, result.avatar, result.email, result.lastSession, result.online));
+                        new User(result.userId, result.screenName, result.avatar, result.email, 
+                            result.lastSession, result.online));
                     callback(users, null);
                 });
             })
@@ -197,7 +198,8 @@ export default class Session extends EventEmitter {
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
-                        new User(result.organizationId, result.projectId, result.userId, result.screenName, result.avatar, result.email, result.lastSession, result.online));
+                        new User(result.userId, result.screenName, result.avatar, result.email, 
+                            result.lastSession, result.online));
                     callback(users, null);
                 });
             })
@@ -210,7 +212,8 @@ export default class Session extends EventEmitter {
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
-                        new User(result.organizationId, result.projectId, result.userId, result.screenName, result.avatar, result.email, result.lastSession, result.online));
+                        new User(result.userId, result.screenName, result.avatar, result.email, 
+                            result.lastSession, result.online));
                     callback(users, null);
                 });
             })
@@ -224,7 +227,8 @@ export default class Session extends EventEmitter {
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
-                        new User(result.organizationId, result.projectId, result.userId, result.screenName, result.avatar, result.email, result.lastSession, result.online));
+                        new User(result.userId, result.screenName, result.avatar, result.email, 
+                            result.lastSession, result.online));
                     callback(users, null);
                 });
             })
@@ -247,8 +251,7 @@ export default class Session extends EventEmitter {
     fireUserTyping(chatroomId) {
         this.transport.send({
             event: 'user-typing', payload: {
-                organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
-                chatroomId: chatroomId, userId: this.currentUser.userId
+                chatroomId: chatroomId, ...this.currentUser
             }
         });
     }
@@ -256,7 +259,6 @@ export default class Session extends EventEmitter {
     markMessageAsDelivered(chatroomId, latestMessageDelivered) {
         this.transport.send({
             event: 'messages-delivered', payload: {
-                organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
                 chatroomId: chatroomId, latestMessageDelivered: latestMessageDelivered
             }
         });
@@ -265,7 +267,6 @@ export default class Session extends EventEmitter {
     markMessageAsRead(chatroomId, latestMessage) {
         this.transport.send({
             event: 'messages-read', payload: {
-                organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
                 chatroomId: chatroomId, latestMessageRead: latestMessage
             }
         });

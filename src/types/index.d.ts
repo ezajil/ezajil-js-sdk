@@ -1,22 +1,21 @@
 declare module 'ezajil-js-sdk' {
     export class User {
-        organizationId: string;
-        projectId: string;
         userId: string;
         screenName: string;
         avatarUrl: string;
         email: string;
+        metadata: Map<string, string>;
         online: boolean;
         lastSession: number;
+        creationDate: number;
 
-        static currentUser(
-            organizationId: string,
-            projectId: string,
+        constructor(
             userId: string,
             screenName: string,
             avatarUrl?: string,
-            email?: string
-        ): User;
+            email?: string,
+            metadata?: Map<string, string>
+        );
     }
 
     export interface SDKError {
@@ -39,29 +38,21 @@ declare module 'ezajil-js-sdk' {
     }
 
     export type MessageSentEvent = {
-        organizationId: string;
-        projectId: string;
         chatroomId: string;
         messageId: string;
     }
 
     export type UserTypingEvent = {
-        organizationId: string;
-        projectId: string;
         chatroomId: string;
         userId: string;
     }
 
     export type MessagesDeliveredEvent = {
-        organizationId: string;
-        projectId: string;
         chatroomId: string;
         latestMessageDelivered: number;
     }
 
     export type MessagesReadEvent = {
-        organizationId: string;
-        projectId: string;
         chatroomId: string;
         latestMessageRead: number;
     }

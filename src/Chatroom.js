@@ -103,8 +103,6 @@ export default class Chatroom extends EventEmitter {
         if (textMessage.length > 0) {
             const author = this.currentUser;
             let message = {
-                'organizationId': author.organizationId,
-                'projectId': author.projectId,
                 'chatroomId': this.chatroomId,
                 'messageId': generateUUID(),
                 'author': author.userId,
@@ -160,8 +158,7 @@ export default class Chatroom extends EventEmitter {
     fireUserTyping() {
         this.transport.send({
             event: 'user-typing', payload: {
-                organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
-                chatroomId: this.chatroomId, userId: this.currentUser.userId
+                chatroomId: this.chatroomId, ...this.currentUser
             }
         });
     }
@@ -169,7 +166,6 @@ export default class Chatroom extends EventEmitter {
     markMessageAsDelivered(latestMessageDeliveredTimestamp) {
         this.transport.send({
             event: 'messages-delivered', payload: {
-                organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
                 chatroomId: this.chatroomId, latestMessageDelivered: latestMessageDeliveredTimestamp
             }
         });
@@ -178,7 +174,6 @@ export default class Chatroom extends EventEmitter {
     markMessageAsRead(latestMessageReadTimestamp) {
         this.transport.send({
             event: 'messages-read', payload: {
-                organizationId: this.currentUser.organizationId, projectId: this.currentUser.projectId,
                 chatroomId: this.chatroomId, latestMessageRead: latestMessageReadTimestamp
             }
         });
