@@ -86,12 +86,12 @@ export default class Session extends EventEmitter {
         return !!this.transport && this.transport.isOpen();
     }
 
-    createSingleChatroom(participantId, metadata, callback) {
-        const body = JSON.stringify({ "participantId": participantId, "metadata": metadata });
+    createSingleChatroom(name, participantId, metadata, callback) {
+        const body = JSON.stringify({ "name": name, "participantId": participantId, "metadata": metadata });
         httpPost(`${this.apiEndpoint}/api/chatroom/single`, this.authToken, body)
             .then(response => {
                 response.json().then(data => {
-                    const chatroom = new Chatroom(this.transport, this.apiEndpoint, this.authToken, data.chatroomId, this.currentUser, participantId, data.latestMessage,
+                    const chatroom = new Chatroom(this.transport, this.apiEndpoint, this.authToken, data.chatroomId, this.currentUser, data.name, data.latestMessage,
                         data.creationDate, data.creatorId, data.single, data.users, data.metadata);
                     callback(chatroom, null);
             });
@@ -184,7 +184,7 @@ export default class Session extends EventEmitter {
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
-                        new User(result.userId, result.screenName, result.avatar, result.email, 
+                        new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
                             result.lastSession, result.online));
                     callback(users, null);
                 });
@@ -198,7 +198,7 @@ export default class Session extends EventEmitter {
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
-                        new User(result.userId, result.screenName, result.avatar, result.email, 
+                        new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
                             result.lastSession, result.online));
                     callback(users, null);
                 });
@@ -212,7 +212,7 @@ export default class Session extends EventEmitter {
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
-                        new User(result.userId, result.screenName, result.avatar, result.email, 
+                        new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
                             result.lastSession, result.online));
                     callback(users, null);
                 });
@@ -227,7 +227,7 @@ export default class Session extends EventEmitter {
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
-                        new User(result.userId, result.screenName, result.avatar, result.email, 
+                        new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
                             result.lastSession, result.online));
                     callback(users, null);
                 });

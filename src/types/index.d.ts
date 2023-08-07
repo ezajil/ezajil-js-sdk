@@ -7,7 +7,6 @@ declare module 'ezajil-js-sdk' {
         metadata: Map<string, string>;
         online: boolean;
         lastSession: number;
-        creationDate: number;
 
         constructor(
             userId: string,
@@ -42,9 +41,8 @@ declare module 'ezajil-js-sdk' {
         messageId: string;
     }
 
-    export type UserTypingEvent = {
+    export interface UserTypingEvent extends User {
         chatroomId: string;
-        userId: string;
     }
 
     export type MessagesDeliveredEvent = {
@@ -101,7 +99,7 @@ declare module 'ezajil-js-sdk' {
         constructor(currentUser: User, appCredentials: AppCredentials);
         connect(): void;
         isOpen(): boolean;
-        createSingleChatroom(participantId: string, metadata: Map<string, string>, callback: (chatroom: Chatroom | null, error: Response | null) => void): void;
+        createSingleChatroom(name: string, participantId: string, metadata: Map<string, string>, callback: (chatroom: Chatroom | null, error: Response | null) => void): void;
         createGroupChatroom(name: string, participantIds: string[], metadata: Map<string, string>, callback: (chatroom: Chatroom | null, error: Response | null) => void): void;
         getChatroom(chatroomId: string, callback: (chatroom: Chatroom | null, error: Response | null) => void): void;
         getChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, error: Response | null) => void): void;

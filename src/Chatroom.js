@@ -80,7 +80,8 @@ export default class Chatroom extends EventEmitter {
         httpGet(`${this.endpoint}/api/chatroom/users/${this.chatroomId}`, this.authToken)
             .then(response => {
                 response.json().then(data => {
-                    const users = data.map(result => new User(userId, screenName, avatarUrl, email, lastSession, online));
+                    const users = data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email, 
+                        result.metadata, result.lastSession, result.online));
                     callback(users, null);
                 });
             })
