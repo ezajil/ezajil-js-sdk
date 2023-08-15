@@ -5,7 +5,6 @@ import Chatroom from './Chatroom';
 import { EventEmitter } from 'events';
 import User from './User';
 
-
 //TODO add onReconnect, get endpoint from appCredentials
 // TODO similar to Transport have somewhere where all Rest API calls are centralized
 export default class Session extends EventEmitter {

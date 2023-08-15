@@ -1,5 +1,4 @@
 const path = require('path');
-const WebpackObfuscator = require('webpack-obfuscator');
 const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
@@ -36,14 +35,5 @@ module.exports = {
     new CopyPlugin({
       patterns: [{ from: 'src/types/index.d.ts', to: 'ezajil-sdk.d.ts' }],
     }),
-    // new WebpackObfuscator ({
-    //     compact: true,
-    //     controlFlowFlattening: true,
-    //     controlFlowFlatteningThreshold: 1,
-    //     numbersToExpressions: true,
-    //     stringArrayShuffle: true,
-    //     splitStrings: true,
-    //     stringArrayThreshold: 1
-    // }, [])
   ],
 };

@@ -116,7 +116,6 @@ declare module 'ezajil-js-sdk' {
         markMessageAsDelivered(chatroomId: string, latestMessageDeliveredTimestamp: number): void;
         markMessageAsRead(chatroomId: string, latestMessageReadTimestamp: number): void;
 
-        // Declare additional events emitted by the Session class
         on(event: 'connected', listener: () => void): this;
         on(event: 'disconnected', listener: (code: number, reason: string) => void): this;
         on(event: 'error', listener: (err: Error) => void): this;
