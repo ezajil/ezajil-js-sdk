@@ -1,6 +1,8 @@
 import { EventEmitter } from 'events';
 import SDKError from './error/SDKError';
 
+const badRequestCodePattern = /^4\d{3}$/;
+
 const connectionDetails = {
     wsPath: data => `${data.endpoint}?auth=${data.token}`
 };
@@ -47,13 +49,17 @@ export default class Transport extends EventEmitter {
 
     _onOpen() {
         this.emit('open');
-        this.ping();
         this.clearReconnectAttemptIfExists();
     }
 
     _onClose(closeEvent) {
         this.emit('close', closeEvent.code, closeEvent.reason);
         clearTimeout(this.pingTimeoutId);
+        if (closeEvent.code && badRequestCodePattern.test(closeEvent.code)) {
+            const error = new SDKError(`Failed to establish connection: ${closeEvent.reason}`, closeEvent.code, null);
+            this.emit('error', error);
+            return;
+        }
         this.reconnect();
     }
 
@@ -69,6 +75,9 @@ export default class Transport extends EventEmitter {
             try {
                 parsed = JSON.parse(event.data);
                 this.emit(parsed.event, parsed.payload);
+                if (parsed.event === 'ready') {
+                    this.ping();
+                }
             } catch (ex) {
                 console.error(ex);
                 this.emit('message', event.data);

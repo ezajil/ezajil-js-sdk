@@ -30,7 +30,10 @@ export default class Session extends EventEmitter {
 
     connect() {
         this.transport.on('open', () => {
-            console.log('Connection established');
+            console.log('Connection opened');
+        });
+        this.transport.on('ready', () => {
+            console.log('Connection ready');
             this.emit('connected');
         });
         this.transport.on('close', (code, reason) => {
