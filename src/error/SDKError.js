@@ -1,7 +1,7 @@
 export default class SDKError {
-    constructor(message, code, err = null) {
-        this.message = message;
+    constructor(code, reason, err = null) {
         this.code = code;
+        this.reason = reason;
         this.error = err;
     }
 }

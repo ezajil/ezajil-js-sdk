@@ -18,8 +18,8 @@ declare module 'ezajil-js-sdk' {
     }
 
     export interface SDKError {
-        message: string;
-        code: string;
+        code: number;
+        reason: string;
         error: any;
     }
 
@@ -79,7 +79,7 @@ declare module 'ezajil-js-sdk' {
         markMessageAsRead(latestMessageReadTimestamp: number): void;
         close(): void;
 
-        on(event: 'error-message', listener: (code: string, reason: string, chatMessage: string) => void): this;
+        on(event: 'error-message', listener: (code: string, reason: string, chatMessage: Message) => void): this;
         on(event: 'chat-message', listener: (message: Message) => void): this;
         on(event: 'message-sent', listener: (message: MessageSentEvent) => void): this;
         on(event: 'user-typing', listener: (message: UserTypingEvent) => void): this;
@@ -94,9 +94,13 @@ declare module 'ezajil-js-sdk' {
         secretKey: string;
     }
 
+    type SDKConfig = {
+        enableLogging: boolean;
+    }
+
     // Declare the 'Session' class
     export class Session {
-        constructor(currentUser: User, appCredentials: AppCredentials);
+        constructor(currentUser: User, appCredentials: AppCredentials, sdkConfig: SDKConfig);
         connect(): void;
         isOpen(): boolean;
         createSingleChatroom(name: string, participantId: string, metadata: Map<string, string>, callback: (chatroom: Chatroom | null, error: Response | null) => void): void;
@@ -118,8 +122,8 @@ declare module 'ezajil-js-sdk' {
 
         on(event: 'connected', listener: () => void): this;
         on(event: 'disconnected', listener: (code: number, reason: string) => void): this;
-        on(event: 'error', listener: (err: Error) => void): this;
-        on(event: 'error-message', listener: (code: string, reason: string, chatMessage: string) => void): this;
+        on(event: 'sdk-error', listener: (err: SDKError) => void): this;
+        on(event: 'error-message', listener: (code: string, reason: string, chatMessage: Message) => void): this;
         on(event: 'online-user', listener: (user: User) => void): this;
         on(event: 'offline-user', listener: (user: User) => void): this;
         on(event: 'chat-message', listener: (message: Message) => void): this;

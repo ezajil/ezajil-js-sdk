@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import SDKError from './error/SDKError';
+import { log, logError } from './utils/sdkLogger';
 
 const badRequestCodePattern = /^4\d{3}$/;
 
@@ -8,7 +9,7 @@ const connectionDetails = {
 };
 
 const defaults = {
-    apiVersion: 2.1
+    apiVersion: 1.0
 };
 
 const WS_EVENTS = {
@@ -21,7 +22,7 @@ const WS_EVENTS = {
 export default class Transport extends EventEmitter {
     constructor(config) {
         super();
-        this.pingInterval = 5000;
+        this.pingInterval = 10000;
         this.configuration = Object.assign({}, defaults, config);
         this._connect();
     }
@@ -48,25 +49,26 @@ export default class Transport extends EventEmitter {
     }
 
     _onOpen() {
+        this._clearReconnectAttemptIfExists();
         this.emit('open');
-        this.clearReconnectAttemptIfExists();
     }
 
     _onClose(closeEvent) {
-        this.emit('close', closeEvent.code, closeEvent.reason);
         clearTimeout(this.pingTimeoutId);
         if (closeEvent.code && badRequestCodePattern.test(closeEvent.code)) {
-            const error = new SDKError(`Failed to establish connection: ${closeEvent.reason}`, closeEvent.code, null);
-            this.emit('error', error);
+            const error = new SDKError(closeEvent.code, closeEvent.reason);
+            this.emit('sdk-error', error);
             return;
+        } else {
+            this._reconnect();
         }
-        this.reconnect();
+        this.emit('close', closeEvent.code, closeEvent.reason);
     }
 
     _onError(err) {
-        const error = new SDKError(`Error on WS connection: ${err.message}`, null, err);
-        this.emit('error', error);
         clearTimeout(this.pingTimeoutId);
+        const error = new SDKError(5000, null, err);
+        this.emit('sdk-error', error);
     }
 
     _onMessage(event) {
@@ -74,52 +76,45 @@ export default class Transport extends EventEmitter {
             let parsed;
             try {
                 parsed = JSON.parse(event.data);
-                this.emit(parsed.event, parsed.payload);
                 if (parsed.event === 'ready') {
-                    this.ping();
+                    this._ping();
                 }
+                this.emit(parsed.event, parsed.payload);
             } catch (ex) {
-                console.error(ex);
+                logError(ex);
                 this.emit('message', event.data);
             }
         }
     }
 
-    ping() {
+    _ping() {
         try {
             if (this.isOpen()) {
                 this.conn.send('');
             }
             this.pingTimeoutId = setTimeout(() => {
-                this.ping();
+                this._ping();
             }, this.pingInterval);
         }
         catch (err) {
-            const error = new SDKError(`Error on WS ping: ${err.message}`, null, err);
-            this.emit('error', error);
+            // TODO: emit a different type of event
+            const error = new SDKError(-1, null, err);
+            this.emit('sdk-error', error);
         }
     }
 
-    send(message) {
-        try {
-            this.conn.send(JSON.stringify(message));
-        } catch (e) {
-            console.error(`Failed to send message: ${message}`, e)
-        }
-    }
-
-    reconnect() {
+    _reconnect() {
         if (!this.reconnectAttempts) {
             this.reconnectAttempts = 0;
         }
         this.reconnectAttempts++;
-        this.close();
+        this._close();
         let reconnectInterval = Math.min(this.reconnectAttempts * 1000, 10000);
-        console.log(`Attempt '${this.reconnectAttempts}', will retry after ${reconnectInterval}ms`);
+        log(`Attempt '${this.reconnectAttempts}', will retry after ${reconnectInterval}ms`);
         this.reconnectId = setTimeout(() => this._connect(), reconnectInterval);
     }
 
-    close() {
+    _close() {
         clearTimeout(this.pingTimeoutId);
         if (!this.conn) {
             return;
@@ -129,14 +124,22 @@ export default class Transport extends EventEmitter {
         this.conn = null;
     }
 
-    isOpen() {
-        return !!this.conn && this.conn.readyState === 1;
-    }
-
-    clearReconnectAttemptIfExists() {
+    _clearReconnectAttemptIfExists() {
         if (this.reconnectId) {
             clearTimeout(this.reconnectId);
         }
         this.reconnectAttempts = 0;
+    }
+
+    isOpen() {
+        return !!this.conn && this.conn.readyState === 1;
+    }
+
+    send(message) {
+        try {
+            this.conn.send(JSON.stringify(message));
+        } catch (e) {
+            logError(`Failed to send message: ${message}`, e)
+        }
     }
 }

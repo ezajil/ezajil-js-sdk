@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { log } from './sdkLogger';
 
 export function generateSignedToken(data, secretKey) {
     var header = {
@@ -16,7 +17,7 @@ export function generateSignedToken(data, secretKey) {
 
     var signature = CryptoJS.HmacSHA256(token, secretKey);
     signature = base64url(signature);
-    console.log('signature: ', signature)
+    log('signature: ', signature);
     return token + "." + signature;
 }
 

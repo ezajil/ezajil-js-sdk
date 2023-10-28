@@ -3,6 +3,7 @@ import { generateUUID } from './utils/util';
 import { EventEmitter } from 'events';
 import SDKError from './error/SDKError';
 import User from './User';
+import { log } from './utils/sdkLogger';
 
 export default class Chatroom extends EventEmitter {
 
@@ -22,6 +23,47 @@ export default class Chatroom extends EventEmitter {
         this.participantIds = users;
         this.metadata = metadata;
         this.lastJoined = lastJoined;
+        this.bindTransportEvents();
+    }
+
+    bindTransportEvents() {
+        this.transport.on('error-message', (message) => {
+            this.emit('error-message', message.code, message.reason, message.chatMessage);
+            log(`errormessage chatroomId ${message.chatroomId} current chatroomId ${this.chatroomId}`);
+            if (message.chatroomId === this.chatroomId) {
+                log(`error-message: ${JSON.stringify(message)}`);
+            }
+        });
+        this.transport.on('chat-message', (message) => {
+            if (message.chatroomId === this.chatroomId) {
+                log(`chat-message: ${JSON.stringify(message)}`);
+                this.emit('chat-message', message);
+            }
+        });
+        this.transport.on('message-sent', (message) => {
+            if (message.chatroomId === this.chatroomId) {
+                log(`message-sent: ${JSON.stringify(message)}`);
+                this.emit('message-sent', message);
+            }
+        });
+        this.transport.on('user-typing', (message) => {
+            if (message.chatroomId === this.chatroomId) {
+                log(`user-typing: ${JSON.stringify(message)}`);
+                this.emit('user-typing', message);
+            }
+        });
+        this.transport.on('messages-delivered', (message) => {
+            if (message.chatroomId === this.chatroomId) {
+                log(`messages-delivered: ${JSON.stringify(message)}`);
+                this.emit('messages-delivered', message);
+            }
+        });
+        this.transport.on('messages-read', (message) => {
+            if (message.chatroomId === this.chatroomId) {
+                log(`messages-read: ${JSON.stringify(message)}`);
+                this.emit('messages-read', message);
+            }
+        });
     }
 
     // TODO: change inputs
@@ -35,43 +77,6 @@ export default class Chatroom extends EventEmitter {
                 });
             })
             .catch(err => callback(null, err));
-
-            this.transport.on('error-message', (message) => {
-                if (message.chatroomId === this.chatroomId) {
-                    console.log(`error-message: ${JSON.stringify(message)}`);
-                    this.emit('error-message', message.code, message.reason, message.chatMessage);
-                }
-            });
-            this.transport.on('chat-message', (message) => {
-                if (message.chatroomId === this.chatroomId) {
-                    console.log(`chat-message: ${JSON.stringify(message)}`);
-                    this.emit('chat-message', message);
-                }
-            });
-            this.transport.on('message-sent', (message) => {
-                if (message.chatroomId === this.chatroomId) {
-                    console.log(`message-sent: ${JSON.stringify(message)}`);
-                    this.emit('message-sent', message);
-                }
-            });
-            this.transport.on('user-typing', (message) => {
-                if (message.chatroomId === this.chatroomId) {
-                    console.log(`user-typing: ${JSON.stringify(message)}`);
-                    this.emit('user-typing', message);
-                }
-            });
-            this.transport.on('messages-delivered', (message) => {
-                if (message.chatroomId === this.chatroomId) {
-                    console.log(`messages-delivered: ${JSON.stringify(message)}`);
-                    this.emit('messages-delivered', message);
-                }
-            });
-            this.transport.on('messages-read', (message) => {
-                if (message.chatroomId === this.chatroomId) {
-                    console.log(`messages-read: ${JSON.stringify(message)}`);
-                    this.emit('messages-read', message);
-                }
-            });
     }
 
     // TODO: fix
@@ -125,7 +130,7 @@ export default class Chatroom extends EventEmitter {
     uploadFile(file, callback) {
         const sizeInMB = file.size / (1024 * 1024);
         if (sizeInMB > 20) {
-            callback(null, new SDKError('The maximum size is 20MB', 8004));
+            callback(null, new SDKError(8004, 'The maximum size is 20MB'));
             return;
         }
         const author = this.currentUser;
