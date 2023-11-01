@@ -17,12 +17,18 @@ declare module 'ezajil-js-sdk' {
         );
     }
 
-    export interface SDKError {
-        code: number;
-        reason: string;
-        error: any;
-    }
+    type ChatroomErrorPayloadMap = {
+        'chat-message': Message;
+        'user-typing': UserTypingEvent;
+        'messages-delivered': MessagesDeliveredEvent;
+        'messages-read': MessagesReadEvent;
+    };
 
+    type PayloadDeliveryErrorPayload<T extends keyof ChatroomErrorPayloadMap> = {
+        event: T;
+        payload: ChatroomErrorPayloadMap[T];
+    };
+    
     export interface Message {
         chatroomId: string;
         messageId: string;
@@ -73,13 +79,14 @@ declare module 'ezajil-js-sdk' {
         getMessages(from: number, size: number, callback: (messages: PageResult<Message> | null, error: Response | null) => void): void;
         getUsers(callback: (users: User[] | null, error: Response | null) => void): void;
         sendChatMessage(textMessage: string): Message | null;
-        uploadFile(file: File, callback: (messages: Message | null, error: SDKError | Response | null) => void): void;
+        uploadFile(file: File, callback: (messages: Message | null, error: Error | Response | null) => void): void;
         fireUserTyping(): void;
         markMessageAsDelivered(latestMessageDeliveredTimestamp: number): void;
         markMessageAsRead(latestMessageReadTimestamp: number): void;
         close(): void;
 
-        on(event: 'error-message', listener: (code: string, reason: string, chatMessage: Message) => void): this;
+        on(event: 'payload-delivery-error', listener: (code: number, reason: string, chatroomId: string,
+            payload: PayloadDeliveryErrorPayload<'chat-message'|'user-typing'|'messages-delivered'|'messages-read'>) => void): this;
         on(event: 'chat-message', listener: (message: Message) => void): this;
         on(event: 'message-sent', listener: (message: MessageSentEvent) => void): this;
         on(event: 'user-typing', listener: (message: UserTypingEvent) => void): this;
@@ -122,8 +129,6 @@ declare module 'ezajil-js-sdk' {
 
         on(event: 'connected', listener: () => void): this;
         on(event: 'disconnected', listener: (code: number, reason: string) => void): this;
-        on(event: 'sdk-error', listener: (err: SDKError) => void): this;
-        on(event: 'error-message', listener: (code: string, reason: string, chatMessage: Message) => void): this;
         on(event: 'online-user', listener: (user: User) => void): this;
         on(event: 'offline-user', listener: (user: User) => void): this;
         on(event: 'chat-message', listener: (message: Message) => void): this;
@@ -131,5 +136,6 @@ declare module 'ezajil-js-sdk' {
         on(event: 'user-typing', listener: (message: UserTypingEvent) => void): this;
         on(event: 'messages-delivered', listener: (message: MessagesDeliveredEvent) => void): this;
         on(event: 'messages-read', listener: (message: MessagesReadEvent) => void): this;
+        on(event: 'error', listener: (code: number, message: string) => void): this;
     }
 }

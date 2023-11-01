@@ -47,10 +47,6 @@ export default class Session extends EventEmitter {
             logError('Connection errored', err);
             this.emit('sdk-error', err);
         });
-        this.transport.on('error-message', (message) => {
-            log(`error-message: ${JSON.stringify(message)}`);
-            this.emit('error-message', message.code, message.reason, message.chatMessage);
-        });
         this.transport.on('online-user', (user) => {
             log(`online user: ${JSON.stringify(user)}`);
             // ignore event for current user

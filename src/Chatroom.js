@@ -1,7 +1,6 @@
 import { httpGet, httpPost, uploadFile } from './utils/http';
 import { generateUUID } from './utils/util';
 import { EventEmitter } from 'events';
-import SDKError from './error/SDKError';
 import User from './User';
 import { log } from './utils/sdkLogger';
 
@@ -27,11 +26,10 @@ export default class Chatroom extends EventEmitter {
     }
 
     bindTransportEvents() {
-        this.transport.on('error-message', (message) => {
-            this.emit('error-message', message.code, message.reason, message.chatMessage);
-            log(`errormessage chatroomId ${message.chatroomId} current chatroomId ${this.chatroomId}`);
+        this.transport.on('payload-delivery-error', (message) => {
+            log(`payload-delivery-error: ${JSON.stringify(message)}`);
             if (message.chatroomId === this.chatroomId) {
-                log(`error-message: ${JSON.stringify(message)}`);
+                this.emit('payload-delivery-error', message.code, message.reason, message.chatroomId, message.payload);
             }
         });
         this.transport.on('chat-message', (message) => {
@@ -130,7 +128,7 @@ export default class Chatroom extends EventEmitter {
     uploadFile(file, callback) {
         const sizeInMB = file.size / (1024 * 1024);
         if (sizeInMB > 20) {
-            callback(null, new SDKError(8004, 'The maximum size is 20MB'));
+            callback(null, new Error('The maximum upload size is 20MB'));
             return;
         }
         const author = this.currentUser;

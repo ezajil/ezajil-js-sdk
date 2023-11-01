@@ -1,6 +1,5 @@
 import WebSocket, { WS } from 'jest-websocket-mock';
 import Transport from '../Transport';
-import SDKError from '../error/SDKError';
 
 describe('Transport Class', () => {
     let server;
@@ -57,8 +56,8 @@ describe('Transport Class', () => {
     it('should handle error event', (done) => {
         transport = new Transport({ endpoint: 'ws://localhost:1234', token: 'yourtoken' });
 
-        transport.on('sdk-error', (error) => {
-            expect(error).toBeInstanceOf(SDKError);
+        transport.on('error', (code, reason) => {
+            expect(code).toBe(5000);
             done();
         });
         server.connected.then(() => {

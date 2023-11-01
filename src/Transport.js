@@ -1,8 +1,7 @@
 import { EventEmitter } from 'events';
-import SDKError from './error/SDKError';
 import { log, logError } from './utils/sdkLogger';
 
-const badRequestCodePattern = /^4\d{3}$/;
+const badRequestCodePattern = /^3\d{3}$/;
 
 const connectionDetails = {
     wsPath: data => `${data.endpoint}?auth=${data.token}`
@@ -55,20 +54,15 @@ export default class Transport extends EventEmitter {
 
     _onClose(closeEvent) {
         clearTimeout(this.pingTimeoutId);
-        if (closeEvent.code && badRequestCodePattern.test(closeEvent.code)) {
-            const error = new SDKError(closeEvent.code, closeEvent.reason);
-            this.emit('sdk-error', error);
-            return;
-        } else {
+        if (closeEvent.code && !badRequestCodePattern.test(closeEvent.code)) {
             this._reconnect();
         }
         this.emit('close', closeEvent.code, closeEvent.reason);
     }
 
     _onError(err) {
-        clearTimeout(this.pingTimeoutId);
-        const error = new SDKError(5000, null, err);
-        this.emit('sdk-error', error);
+        // clearTimeout(this.pingTimeoutId);
+        this.emit('error', 5000, err);
     }
 
     _onMessage(event) {
@@ -97,9 +91,7 @@ export default class Transport extends EventEmitter {
             }, this.pingInterval);
         }
         catch (err) {
-            // TODO: emit a different type of event
-            const error = new SDKError(-1, null, err);
-            this.emit('sdk-error', error);
+            this.emit('error', 5001, err);
         }
     }
 
