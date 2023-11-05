@@ -6,7 +6,7 @@ import { log } from './utils/sdkLogger';
 
 export default class Chatroom extends EventEmitter {
 
-    constructor(transport, endpoint, authToken, chatroomId, currentUser, name, latestMessage, creationDate, creatorId, 
+    constructor(transport, endpoint, authToken, chatroomId, currentUser, name, latestMessage, creationDate, creatorId,
         single, users, metadata, lastJoined) {
         super();
         this.transport = transport;
@@ -64,13 +64,15 @@ export default class Chatroom extends EventEmitter {
         });
     }
 
-    // TODO: change inputs
-    getMessages(from, size, callback) {
+    getMessages(callback, pagingState = null, limit = null) {
         // Get latest messages
-        httpGet(this.endpoint + '/api/chatroom/messages/' + this.chatroomId, this.authToken)
+        httpGet(`${this.endpoint}/api/chatrooms/${this.chatroomId}/messages`, this.authToken, {
+            pagingState: pagingState,
+            limit: limit,
+        })
             .then(response => {
                 response.json().then(data => {
-                    data.results.sort((m1, m2) => m1.sendingDate - m2.sendingDate);
+                    // data.results.sort((m1, m2) => m1.sendingDate - m2.sendingDate);
                     callback(data, null);
                 });
             })
@@ -80,10 +82,10 @@ export default class Chatroom extends EventEmitter {
     // TODO: fix
     getUsers(callback) {
         // Get latest messages
-        httpGet(`${this.endpoint}/api/chatroom/users/${this.chatroomId}`, this.authToken)
+        httpGet(`${this.endpoint}/api/chatrooms/${this.chatroomId}/users`, this.authToken)
             .then(response => {
                 response.json().then(data => {
-                    const users = data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email, 
+                    const users = data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email,
                         result.metadata, result.lastSession, result.online));
                     callback(users, null);
                 });
@@ -93,10 +95,10 @@ export default class Chatroom extends EventEmitter {
 
     join(callback) {
         // Get latest messages
-        httpPost(`${this.endpoint}/api/chatroom/join/${this.chatroomId}`, this.authToken)
+        httpPost(`${this.endpoint}/api/chatrooms/${this.chatroomId}/join`, this.authToken)
             .then(response => {
                 response.json().then(data => {
-                    
+
                     callback(data, null);
                 });
             })
@@ -122,7 +124,7 @@ export default class Chatroom extends EventEmitter {
     }
 
     _sendTextMessage(message) {
-        this.transport.send({event: 'chat-message', payload: message});
+        this.transport.send({ event: 'chat-message', payload: message });
     }
 
     uploadFile(file, callback) {
@@ -135,7 +137,7 @@ export default class Chatroom extends EventEmitter {
         let formData = new FormData();
         formData.append('file', file);
         // TODO: take size as input
-        uploadFile(this.endpoint + '/dam/upload/' + this.chatroomId + '/' + author.userId, this.authToken, formData)
+        uploadFile(`${this.endpoint}/dam/upload/${this.chatroomId}/${author.userId}`, this.authToken, formData)
             .then(response => {
                 response.json().then(uploadResult => {
                     if (uploadResult.status > 399) {

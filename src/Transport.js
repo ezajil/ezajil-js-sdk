@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { log, logError } from './utils/sdkLogger';
 
-const badRequestCodePattern = /^3\d{3}$/;
+const clientErrorCodePattern = /^3\d{3}$/;
 
 const connectionDetails = {
     wsPath: data => `${data.endpoint}?auth=${data.token}`
@@ -54,10 +54,11 @@ export default class Transport extends EventEmitter {
 
     _onClose(closeEvent) {
         clearTimeout(this.pingTimeoutId);
-        if (closeEvent.code && !badRequestCodePattern.test(closeEvent.code)) {
+        const isClientError = clientErrorCodePattern.test(closeEvent.code);
+        if (closeEvent.code && !isClientError) {
             this._reconnect();
         }
-        this.emit('close', closeEvent.code, closeEvent.reason);
+        this.emit('close', closeEvent.code, closeEvent.reason, isClientError);
     }
 
     _onError(err) {

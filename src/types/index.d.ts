@@ -76,7 +76,8 @@ declare module 'ezajil-js-sdk' {
         single: boolean;
         participantIds: string[];
         metadata: Map<string, string>;
-        getMessages(from: number, size: number, callback: (messages: PageResult<Message> | null, error: Response | null) => void): void;
+        getMessages(callback: (messages: PageResult<Message> | null, error: Response | null) => void, 
+            pagingState?: string|null, limit?: number): void;
         getUsers(callback: (users: User[] | null, error: Response | null) => void): void;
         sendChatMessage(textMessage: string): Message | null;
         uploadFile(file: File, callback: (messages: Message | null, error: Error | Response | null) => void): void;
@@ -113,10 +114,13 @@ declare module 'ezajil-js-sdk' {
         createSingleChatroom(name: string, participantId: string, metadata: Map<string, string>, callback: (chatroom: Chatroom | null, error: Response | null) => void): void;
         createGroupChatroom(name: string, participantIds: string[], metadata: Map<string, string>, callback: (chatroom: Chatroom | null, error: Response | null) => void): void;
         getChatroom(chatroomId: string, callback: (chatroom: Chatroom | null, error: Response | null) => void): void;
-        getChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, error: Response | null) => void): void;
-        getSingleChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, error: Response | null) => void): void;
+        getChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, pagingState: string|null, totalResults: number, error: Response | null) => void, 
+            pagingState?: string|null, limit?: number): void;
+        getSingleChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, pagingState: string|null, totalResults: number, error: Response | null) => void,
+            pagingState?: string|null, limit?: number): void;
         getName(chatroom: any): string;
-        getGroupChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, error: Response | null) => void): void;
+        getGroupChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, pagingState: string|null, totalResults: number, error: Response | null) => void,
+            pagingState?: string|null, limit?: number): void;
         getChatroomUsers(chatroomId: string, callback: (users: User[] | null, error: Response | null) => void): void;
         getUsers(userIds: string[], callback: (users: User[] | null, error: Response | null) => void): void;
         subscribeToUsersPresence(userIds: string[], callback: (users: User[] | null, error: Response | null) => void): void;
@@ -128,7 +132,7 @@ declare module 'ezajil-js-sdk' {
         markMessageAsRead(chatroomId: string, latestMessageReadTimestamp: number): void;
 
         on(event: 'connected', listener: () => void): this;
-        on(event: 'disconnected', listener: (code: number, reason: string) => void): this;
+        on(event: 'disconnected', listener: (code: number, reason: string, isClientError: boolean) => void): this;
         on(event: 'online-user', listener: (user: User) => void): this;
         on(event: 'offline-user', listener: (user: User) => void): this;
         on(event: 'chat-message', listener: (message: Message) => void): this;

@@ -7,8 +7,6 @@ import User from './User';
 import { sdkConfig } from './utils/sdkConfig';
 import { log, logError } from './utils/sdkLogger';
 
-//TODO add onReconnect, get endpoint from appCredentials
-// TODO similar to Transport have somewhere where all Rest API calls are centralized
 export default class Session extends EventEmitter {
 
     constructor(currentUser, appCredentials, config = {}) {
@@ -39,9 +37,9 @@ export default class Session extends EventEmitter {
             log('Connection ready');
             this.emit('connected');
         });
-        this.transport.on('close', (code, reason) => {
-            log(`Connection closed: ${code} - ${reason}`);
-            this.emit('disconnected', code, reason);
+        this.transport.on('close', (code, reason, isClientError) => {
+            log(`Connection closed: ${reason} (code: ${code} - Client error: ${isClientError})`);
+            this.emit('disconnected', code, reason, isClientError);
         });
         this.transport.on('sdk-error', (err) => {
             logError('Connection errored', err);
@@ -89,7 +87,7 @@ export default class Session extends EventEmitter {
 
     createSingleChatroom(name, participantId, metadata, callback) {
         const body = JSON.stringify({ "name": name, "participantId": participantId, "metadata": metadata });
-        httpPost(`${this.apiEndpoint}/api/chatroom/single`, this.authToken, body)
+        httpPost(`${this.apiEndpoint}/api/chatrooms/single`, this.authToken, body)
             .then(response => {
                 response.json().then(data => {
                     const chatroom = new Chatroom(this.transport, this.apiEndpoint, this.authToken, 
@@ -103,7 +101,7 @@ export default class Session extends EventEmitter {
 
     createGroupChatroom(name, participantIds, metadata, callback) {
         const body = JSON.stringify({ "name": name, "participantIds": participantIds, "metadata": metadata });
-        httpPost(`${this.apiEndpoint}/api/chatroom/group`, this.authToken, body)
+        httpPost(`${this.apiEndpoint}/api/chatrooms/group`, this.authToken, body)
             .then(response => {
                 response.json().then(data => {
                     const chatroom = new Chatroom(this.transport, this.apiEndpoint, this.authToken, data.chatroomId, 
@@ -116,7 +114,7 @@ export default class Session extends EventEmitter {
     }
 
     getChatroom(chatroomId, callback) {
-        httpGet(`${this.apiEndpoint}/api/chatroom?chatroomId=${chatroomId}`, this.authToken)
+        httpGet(`${this.apiEndpoint}/api/chatrooms/${chatroomId}`, this.authToken)
             .then(response => {
                 response.json().then(data => {
                     const chatroom = new Chatroom(this.transport, this.apiEndpoint, this.authToken, data.chatroomId, 
@@ -128,8 +126,8 @@ export default class Session extends EventEmitter {
             .catch(err => callback(null, err));
     }
 
-    getChatroomsOfUser(callback) {
-        httpGet(`${this.apiEndpoint}/api/chatroom/latest`, this.authToken)
+    getChatroomsOfUser(callback, pagingState = null, limit = null) {
+        httpGet(`${this.apiEndpoint}/api/chatrooms/latest`, this.authToken, {pagingState: pagingState, limit: limit})
             .then(response => {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
@@ -142,15 +140,15 @@ export default class Session extends EventEmitter {
                             this.currentUser, result.name, result.latestMessage, result.creationDate, result.creatorId,
                              result.single, result.users, result.metadata, result.lastJoined);
                     });
-                    callback(chatrooms, null);
+                    callback(chatrooms, data.pagingState, data.totalResults, null);
                 });
             })
             .catch(err => callback(null, err));
     }
 
 
-    getSingleChatroomsOfUser(callback) {
-        httpGet(`${this.apiEndpoint}/api/chatroom/latest/single`, this.authToken)
+    getSingleChatroomsOfUser(callback, pagingState = null, limit = null) {
+        httpGet(`${this.apiEndpoint}/api/chatrooms/latest/single`, this.authToken, {pagingState: pagingState, limit: limit})
             .then(response => {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
@@ -158,7 +156,7 @@ export default class Session extends EventEmitter {
                             this.getName(result), result.latestMessage, result.creationDate, result.creatorId, 
                             result.single, result.users, result.metadata, result.lastJoined);
                     });
-                    callback(chatrooms, null);
+                    callback(chatrooms, data.pagingState, data.totalResults, null);
                 });
             })
             .catch(err => callback(null, err));
@@ -171,8 +169,8 @@ export default class Session extends EventEmitter {
         return this.currentUser.userId === chatroom.users[1] ? chatroom.users[0] : chatroom.users[1];
     }
 
-    getGroupChatroomsOfUser(callback) {
-        httpGet(`${this.apiEndpoint}/api/chatroom/latest/group`, this.authToken)
+    getGroupChatroomsOfUser(callback, pagingState = null, limit = null) {
+        httpGet(`${this.apiEndpoint}/api/chatrooms/latest/group`, this.authToken, {pagingState: pagingState, limit: limit})
             .then(response => {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
@@ -180,14 +178,14 @@ export default class Session extends EventEmitter {
                              result.name, result.latestMessage, result.creationDate, result.creatorId, result.single, result.users,
                               result.metadata, result.lastJoined);
                     });
-                    callback(chatrooms, null);
+                    callback(chatrooms, data.pagingState, data.totalResults, null);
                 });
             })
             .catch(err => callback(null, err));
     }
 
     getChatroomUsers(chatroomId, callback) {
-        httpGet(`${this.apiEndpoint}/api/chatroom/users/${chatroomId}`, this.authToken)
+        httpGet(`${this.apiEndpoint}/api/chatrooms/${chatroomId}/users`, this.authToken)
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
