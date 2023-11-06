@@ -22,50 +22,40 @@ export default class Chatroom extends EventEmitter {
         this.participantIds = users;
         this.metadata = metadata;
         this.lastJoined = lastJoined;
-        this.bindTransportEvents();
     }
 
-    bindTransportEvents() {
-        this.transport.on('payload-delivery-error', (message) => {
+    open() {
+        this.transport.on(`payload-delivery-error:${this.chatroomId}`, (message) => {
             log(`payload-delivery-error: ${JSON.stringify(message)}`);
-            if (message.chatroomId === this.chatroomId) {
-                this.emit('payload-delivery-error', message.code, message.reason, message.chatroomId, message.payload);
-            }
+            this.emit('payload-delivery-error', message.code, message.reason, message.chatroomId, message.payload);
         });
-        this.transport.on('chat-message', (message) => {
-            if (message.chatroomId === this.chatroomId) {
-                log(`chat-message: ${JSON.stringify(message)}`);
-                this.emit('chat-message', message);
-            }
+        this.transport.on(`chat-message:${this.chatroomId}`, (message) => {
+            log(`chat-message: ${JSON.stringify(message)}`);
+            this.emit('chat-message', message);
         });
-        this.transport.on('message-sent', (message) => {
-            if (message.chatroomId === this.chatroomId) {
-                log(`message-sent: ${JSON.stringify(message)}`);
-                this.emit('message-sent', message);
-            }
+        this.transport.on(`message-sent:${this.chatroomId}`, (message) => {
+            log(`message-sent: ${JSON.stringify(message)}`);
+            this.emit('message-sent', message);
         });
-        this.transport.on('user-typing', (message) => {
-            if (message.chatroomId === this.chatroomId) {
-                log(`user-typing: ${JSON.stringify(message)}`);
-                this.emit('user-typing', message);
-            }
+        this.transport.on(`user-typing:${this.chatroomId}`, (message) => {
+            log(`user-typing: ${JSON.stringify(message)}`);
+            this.emit('user-typing', message);
         });
-        this.transport.on('messages-delivered', (message) => {
-            if (message.chatroomId === this.chatroomId) {
-                log(`messages-delivered: ${JSON.stringify(message)}`);
-                this.emit('messages-delivered', message);
-            }
+        this.transport.on(`messages-delivered:${this.chatroomId}`, (message) => {
+            log(`messages-delivered: ${JSON.stringify(message)}`);
+            this.emit('messages-delivered', message);
         });
-        this.transport.on('messages-read', (message) => {
-            if (message.chatroomId === this.chatroomId) {
-                log(`messages-read: ${JSON.stringify(message)}`);
-                this.emit('messages-read', message);
-            }
+        this.transport.on(`messages-read:${this.chatroomId}`, (message) => {
+            log(`messages-read: ${JSON.stringify(message)}`);
+            this.emit('messages-read', message);
         });
+    }
+
+    close() {
+        this.removeAllListeners();
     }
 
     getMessages(callback, pagingState = null, limit = null) {
-        // Get latest messages
         httpGet(`${this.endpoint}/api/chatrooms/${this.chatroomId}/messages`, this.authToken, {
             pagingState: pagingState,
             limit: limit,
@@ -79,9 +69,7 @@ export default class Chatroom extends EventEmitter {
             .catch(err => callback(null, err));
     }
 
-    // TODO: fix
     getUsers(callback) {
-        // Get latest messages
         httpGet(`${this.endpoint}/api/chatrooms/${this.chatroomId}/users`, this.authToken)
             .then(response => {
                 response.json().then(data => {
@@ -94,7 +82,6 @@ export default class Chatroom extends EventEmitter {
     }
 
     join(callback) {
-        // Get latest messages
         httpPost(`${this.endpoint}/api/chatrooms/${this.chatroomId}/join`, this.authToken)
             .then(response => {
                 response.json().then(data => {
@@ -137,7 +124,7 @@ export default class Chatroom extends EventEmitter {
         let formData = new FormData();
         formData.append('file', file);
         // TODO: take size as input
-        uploadFile(`${this.endpoint}/dam/upload/${this.chatroomId}/${author.userId}`, this.authToken, formData)
+        uploadFile(`${this.endpoint}/dam/upload/${this.chatroomId}`, this.authToken, formData)
             .then(response => {
                 response.json().then(uploadResult => {
                     if (uploadResult.status > 399) {
@@ -183,9 +170,5 @@ export default class Chatroom extends EventEmitter {
                 chatroomId: this.chatroomId, latestMessageRead: latestMessageReadTimestamp
             }
         });
-    }
-
-    close() {
-        this.removeAllListeners();
     }
 }

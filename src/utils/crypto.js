@@ -17,7 +17,6 @@ export function generateSignedToken(data, secretKey) {
 
     var signature = CryptoJS.HmacSHA256(token, secretKey);
     signature = base64url(signature);
-    log('signature: ', signature);
     return token + "." + signature;
 }
 

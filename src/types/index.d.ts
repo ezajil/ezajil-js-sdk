@@ -76,6 +76,8 @@ declare module 'ezajil-js-sdk' {
         single: boolean;
         participantIds: string[];
         metadata: Map<string, string>;
+        open(): void;
+        close(): void;
         getMessages(callback: (messages: PageResult<Message> | null, error: Response | null) => void, 
             pagingState?: string|null, limit?: number): void;
         getUsers(callback: (users: User[] | null, error: Response | null) => void): void;
@@ -84,7 +86,6 @@ declare module 'ezajil-js-sdk' {
         fireUserTyping(): void;
         markMessageAsDelivered(latestMessageDeliveredTimestamp: number): void;
         markMessageAsRead(latestMessageReadTimestamp: number): void;
-        close(): void;
 
         on(event: 'payload-delivery-error', listener: (code: number, reason: string, chatroomId: string,
             payload: PayloadDeliveryErrorPayload<'chat-message'|'user-typing'|'messages-delivered'|'messages-read'>) => void): this;
@@ -140,6 +141,6 @@ declare module 'ezajil-js-sdk' {
         on(event: 'user-typing', listener: (message: UserTypingEvent) => void): this;
         on(event: 'messages-delivered', listener: (message: MessagesDeliveredEvent) => void): this;
         on(event: 'messages-read', listener: (message: MessagesReadEvent) => void): this;
-        on(event: 'error', listener: (code: number, message: string) => void): this;
+        on(event: 'error', listener: (event: Event) => void): this;
     }
 }

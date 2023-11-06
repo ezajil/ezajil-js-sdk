@@ -41,9 +41,9 @@ export default class Session extends EventEmitter {
             log(`Connection closed: ${reason} (code: ${code} - Client error: ${isClientError})`);
             this.emit('disconnected', code, reason, isClientError);
         });
-        this.transport.on('sdk-error', (err) => {
-            logError('Connection errored', err);
-            this.emit('sdk-error', err);
+        this.transport.on('error', (event) => {
+            logError('Connection errored', event);
+            this.emit('error', event);
         });
         this.transport.on('online-user', (user) => {
             log(`online user: ${JSON.stringify(user)}`);
@@ -199,7 +199,7 @@ export default class Session extends EventEmitter {
 
     getUsers(userIds, callback) {
         const body = JSON.stringify({ "userIds": userIds });
-        httpPost(`${this.apiEndpoint}/api/user/list`, this.authToken, body)
+        httpPost(`${this.apiEndpoint}/api/users/list`, this.authToken, body)
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
@@ -213,7 +213,7 @@ export default class Session extends EventEmitter {
 
     subscribeToUsersPresence(userIds, callback) {
         const body = JSON.stringify({ "userIds": userIds });
-        httpPost(`${this.apiEndpoint}/api/user/subscribe-users-status`, this.authToken, body)
+        httpPost(`${this.apiEndpoint}/api/users/subscribe`, this.authToken, body)
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
@@ -228,7 +228,7 @@ export default class Session extends EventEmitter {
 
     subscribeToUsersPresence(users, callback) {
         const body = JSON.stringify({ "users": users });
-        httpPost(`${this.apiEndpoint}/api/user/subscribe-users-status`, this.authToken, body)
+        httpPost(`${this.apiEndpoint}/api/users/subscribe`, this.authToken, body)
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
@@ -243,13 +243,13 @@ export default class Session extends EventEmitter {
 
     unsubscribeFromUsersPresence(userIds, callback) {
         const body = JSON.stringify({ "userIds": userIds });
-        httpPost(`${this.apiEndpoint}/api/user/unsubscribe-users-status`, this.authToken, body)
+        httpPost(`${this.apiEndpoint}/api/users/unsubscribe`, this.authToken, body)
             .catch(err => callback(null, err));
     }
 
     unsubscribeFromAllUsersPresence(callback) {
         const body = JSON.stringify({});
-        httpPost(`${this.apiEndpoint}/api/user/unsubscribe-all-users-status`, this.authToken, body)
+        httpPost(`${this.apiEndpoint}/api/users/unsubscribe-all`, this.authToken, body)
             .catch(err => callback(null, err));
     }
 

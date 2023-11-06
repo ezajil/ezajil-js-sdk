@@ -61,9 +61,8 @@ export default class Transport extends EventEmitter {
         this.emit('close', closeEvent.code, closeEvent.reason, isClientError);
     }
 
-    _onError(err) {
-        // clearTimeout(this.pingTimeoutId);
-        this.emit('error', 5000, err);
+    _onError(event) {
+        this.emit('error', event);
     }
 
     _onMessage(event) {
@@ -73,6 +72,10 @@ export default class Transport extends EventEmitter {
                 parsed = JSON.parse(event.data);
                 if (parsed.event === 'ready') {
                     this._ping();
+                }
+                if (['chat-message', 'payload-delivery-error', 'message-sent', 
+                'user-typing', 'messages-delivered', 'messages-read'].includes(parsed.event)) {
+                    this.emit(`${parsed.event}:${parsed.payload.chatroomId}`, parsed.payload);    
                 }
                 this.emit(parsed.event, parsed.payload);
             } catch (ex) {
