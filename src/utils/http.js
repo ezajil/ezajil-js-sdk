@@ -1,3 +1,5 @@
+import APIError from '../APIError';
+
 // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
 export function httpGet(url, authToken, queryParams = {}) {
     let apiUrl = url;
@@ -18,7 +20,7 @@ export function httpGet(url, authToken, queryParams = {}) {
         mode: 'cors',
         cache: 'default'
     };
-    return fetch(apiUrl, options);
+    return callAPI(apiUrl, options);
 }
 
 export function httpPost(url, authToken, body, queryParams = {}) {
@@ -40,7 +42,7 @@ export function httpPost(url, authToken, body, queryParams = {}) {
         mode: 'cors',
         body: body
     };
-    return fetch(apiUrl, options);
+    return callAPI(apiUrl, options);
 }
 
 export function uploadFile(url, authToken, body) {
@@ -52,5 +54,39 @@ export function uploadFile(url, authToken, body) {
         mode: 'cors',
         body: body
     };
-    return fetch(url, options);
+    return callAPI(url, options);
+}
+
+function callAPI(url, options) {
+    return fetch(url, options)
+        .then(response => {
+            if (!response.ok) {
+                return handleFetchError(response);
+            }
+            return response;
+        });
+}
+
+function handleFetchError(response) {
+    return response.text().then((text) => {
+        let message;
+        let details;
+        try {
+            const data = JSON.parse(text);
+
+            if (response.status === 400) {
+                message = data.title;
+                details = data.invalidParameters;
+            } else if (response.status === 500) {
+                message = "An unexpected error has occurred. Our team has been alerted, and we are actively working to resolve it shortly.";
+            } else if (response.status === 401 || response.status === 403) {
+                message = "Unauthorized or Forbidden. Please log in or check your permissions.";
+            }
+        } catch (error) {
+            // If the response isn't valid JSON, handle it accordingly
+            message = `Unexpected error: ${response.status}`;
+            details = text;
+        }
+        throw new APIError(response.status, message, details);
+    });
 }

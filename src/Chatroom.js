@@ -2,7 +2,8 @@ import { httpGet, httpPost, uploadFile } from './utils/http';
 import { generateUUID } from './utils/util';
 import { EventEmitter } from 'events';
 import User from './User';
-import { log } from './utils/sdkLogger';
+import { log, logError } from './utils/sdkLogger';
+import APIError from './APIError';
 
 export default class Chatroom extends EventEmitter {
 
@@ -62,11 +63,12 @@ export default class Chatroom extends EventEmitter {
         })
             .then(response => {
                 response.json().then(data => {
-                    // data.results.sort((m1, m2) => m1.sendingDate - m2.sendingDate);
                     callback(data, null);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                callback(null, err);
+            });
     }
 
     getUsers(callback) {
@@ -74,7 +76,7 @@ export default class Chatroom extends EventEmitter {
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email,
-                        result.metadata, result.lastSession, result.online));
+                        result.metadata, result.lastSeen, result.online));
                     callback(users, null);
                 });
             })
@@ -85,7 +87,6 @@ export default class Chatroom extends EventEmitter {
         httpPost(`${this.endpoint}/api/chatrooms/${this.chatroomId}/join`, this.authToken)
             .then(response => {
                 response.json().then(data => {
-
                     callback(data, null);
                 });
             })
@@ -117,7 +118,7 @@ export default class Chatroom extends EventEmitter {
     uploadFile(file, callback) {
         const sizeInMB = file.size / (1024 * 1024);
         if (sizeInMB > 20) {
-            callback(null, new Error('The maximum upload size is 20MB'));
+            callback(null, new APIError(400, 'The maximum upload size is 20MB'));
             return;
         }
         const author = this.currentUser;
@@ -127,22 +128,18 @@ export default class Chatroom extends EventEmitter {
         uploadFile(`${this.endpoint}/dam/upload/${this.chatroomId}`, this.authToken, formData)
             .then(response => {
                 response.json().then(uploadResult => {
-                    if (uploadResult.status > 399) {
-                        callback(null, uploadResult);
-                    } else {
-                        let message = {
-                            'chatroomId': this.chatroomId,
-                            'messageId': generateUUID(),
-                            'author': author.userId,
-                            'mediaUrls': uploadResult.links,
-                            'preview': uploadResult.preview,
-                            'screenName': author.screenName,
-                            'users': this.participantIds,
-                            'sendingDate': (new Date).getTime(),
-                        };
-                        this._sendTextMessage(message);
-                        callback(message, null);
-                    }
+                    let message = {
+                        'chatroomId': this.chatroomId,
+                        'messageId': generateUUID(),
+                        'author': author.userId,
+                        'mediaUrls': uploadResult.links,
+                        'preview': uploadResult.preview,
+                        'screenName': author.screenName,
+                        'users': this.participantIds,
+                        'sendingDate': (new Date).getTime(),
+                    };
+                    this._sendTextMessage(message);
+                    callback(message, null);
                 });
             })
             .catch((err) => callback(null, err));

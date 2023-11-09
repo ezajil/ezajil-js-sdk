@@ -190,7 +190,7 @@ export default class Session extends EventEmitter {
                 response.json().then(data => {
                     const users = data.map(result =>
                         new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
-                            result.lastSession, result.online));
+                            result.lastSeen, result.online));
                     callback(users, null);
                 });
             })
@@ -204,7 +204,7 @@ export default class Session extends EventEmitter {
                 response.json().then(data => {
                     const users = data.map(result =>
                         new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
-                            result.lastSession, result.online));
+                            result.lastSeen, result.online));
                     callback(users, null);
                 });
             })
@@ -218,7 +218,7 @@ export default class Session extends EventEmitter {
                 response.json().then(data => {
                     const users = data.map(result =>
                         new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
-                            result.lastSession, result.online));
+                            result.lastSeen, result.online));
                     callback(users, null);
                 });
             })
@@ -233,7 +233,7 @@ export default class Session extends EventEmitter {
                 response.json().then(data => {
                     const users = data.map(result =>
                         new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
-                            result.lastSession, result.online));
+                            result.lastSeen, result.online));
                     callback(users, null);
                 });
             })
