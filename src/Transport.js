@@ -4,7 +4,8 @@ import { log, logError } from './utils/sdkLogger';
 const clientErrorCodePattern = /^3\d{3}$/;
 
 const connectionDetails = {
-    wsPath: data => `${data.endpoint}?auth=${data.token}`
+    wsPath: data => `${data.endpoint}?auth=${data.token}`,
+    token: data => `${data.token}`
 };
 
 const defaults = {
@@ -28,7 +29,8 @@ export default class Transport extends EventEmitter {
 
     _connect() {
         this.conn = new WebSocket(
-            connectionDetails.wsPath(this.configuration)
+            connectionDetails.wsPath(this.configuration),
+            connectionDetails.token(this.configuration)
         );
         this._bindWsEvents();
     }
