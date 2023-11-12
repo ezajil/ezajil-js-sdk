@@ -124,7 +124,6 @@ export default class Chatroom extends EventEmitter {
         const author = this.currentUser;
         let formData = new FormData();
         formData.append('file', file);
-        // TODO: take size as input
         uploadFile(`${this.endpoint}/dam/upload/${this.chatroomId}`, this.authToken, formData)
             .then(response => {
                 response.json().then(uploadResult => {
