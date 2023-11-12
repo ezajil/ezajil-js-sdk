@@ -153,20 +153,13 @@ export default class Session extends EventEmitter {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
                         return new Chatroom(this.transport, this.apiEndpoint, this.authToken, result.chatroomId, this.currentUser,
-                            this.getName(result), result.latestMessage, result.creationDate, result.creatorId, 
+                            result.name, result.latestMessage, result.creationDate, result.creatorId, 
                             result.single, result.users, result.metadata, result.lastJoined);
                     });
                     callback(chatrooms, data.pagingState, data.totalResults, null);
                 });
             })
             .catch(err => callback(null, err));
-    }
-
-    getName(chatroom) {
-        if (chatroom.users.length === 1) {
-            return chatroom.users[1];
-        }
-        return this.currentUser.userId === chatroom.users[1] ? chatroom.users[0] : chatroom.users[1];
     }
 
     getGroupChatroomsOfUser(callback, pagingState = null, limit = null) {
@@ -226,20 +219,20 @@ export default class Session extends EventEmitter {
             .catch(err => callback(null, err));
     }
 
-    subscribeToUsersPresence(users, callback) {
-        const body = JSON.stringify({ "users": users });
-        httpPost(`${this.apiEndpoint}/api/users/subscribe`, this.authToken, body)
-            .then(response => {
-                response.json().then(data => {
-                    const users = data.map(result =>
-                        new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
-                            result.lastSeen, result.online));
-                    callback(users, null);
-                });
-            })
+    // subscribeToUsersPresence(users, callback) {
+    //     const body = JSON.stringify({ "users": users });
+    //     httpPost(`${this.apiEndpoint}/api/users/subscribe`, this.authToken, body)
+    //         .then(response => {
+    //             response.json().then(data => {
+    //                 const users = data.map(result =>
+    //                     new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
+    //                         result.lastSeen, result.online));
+    //                 callback(users, null);
+    //             });
+    //         })
 
-            .catch(err => callback(null, err));
-    }
+    //         .catch(err => callback(null, err));
+    // }
 
     unsubscribeFromUsersPresence(userIds, callback) {
         const body = JSON.stringify({ "userIds": userIds });
