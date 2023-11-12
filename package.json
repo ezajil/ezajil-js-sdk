@@ -1,6 +1,6 @@
 {
   "name": "ezajil-js-sdk",
-  "version": "1.0.88",
+  "version": "1.0.92",
   "description": "Ezajil Chat Application SDK",
   "main": "dist/ezajil-sdk.min.js",
   "types": "dist/ezajil-sdk.d.ts",
@@ -13,7 +13,6 @@
     "lint": "eslint src",
     "build": "webpack --config webpack.config.js",
     "prepublish": "npm run build",
-    "deploy": "your-deployment-command",
     "clean": "rm -rf dist",
     "test": "jest --detectOpenHandles"
   },
