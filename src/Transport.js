@@ -3,15 +3,6 @@ import { log, logError } from './utils/sdkLogger';
 
 const clientErrorCodePattern = /^3\d{3}$/;
 
-const connectionDetails = {
-    wsPath: data => `${data.endpoint}?auth=${data.token}`,
-    token: data => `${data.token}`
-};
-
-const defaults = {
-    apiVersion: 1.0
-};
-
 const WS_EVENTS = {
     OPEN: 'open',
     CLOSE: 'close',
@@ -20,19 +11,24 @@ const WS_EVENTS = {
 };
 
 export default class Transport extends EventEmitter {
-    constructor(config) {
+    constructor(session) {
         super();
         this.pingInterval = 10000;
-        this.configuration = Object.assign({}, defaults, config);
+        this.wsEndpoint = session.wsEndpoint;
+        this.tokenManager = session.tokenManager;
         this._connect();
     }
 
     _connect() {
-        this.conn = new WebSocket(
-            connectionDetails.wsPath(this.configuration),
-            connectionDetails.token(this.configuration)
-        );
-        this._bindWsEvents();
+        // TODO reconnect in case of error and force refresh on 401
+        this.tokenManager.get().then(accessToken => {
+            console.log(`access token: ${accessToken}`);
+            this.conn = new WebSocket(
+                this.wsEndpoint,
+                accessToken
+            );
+            this._bindWsEvents();
+        }).catch(error => logError(`ERROR3: ${error}`));
     }
 
     _bindWsEvents() {

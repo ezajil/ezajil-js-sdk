@@ -1,7 +1,8 @@
 import APIError from '../APIError';
+import { log, logError } from './sdkLogger';
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-export function httpGet(url, authToken, queryParams = {}) {
+export function httpGet(url, authSupplier, queryParams = {}) {
     let apiUrl = url;
 
     // Add query parameters to the URL if provided
@@ -12,18 +13,16 @@ export function httpGet(url, authToken, queryParams = {}) {
             .join('&');
         apiUrl += `?${queryString}`;
     }
-    var myHeaders = new Headers();
-    myHeaders.append('x-auth-user', 'Bearer ' + authToken);
     var options = {
         method: 'GET',
-        headers: myHeaders,
+        headers: new Headers(),
         mode: 'cors',
         cache: 'default'
     };
-    return callAPI(apiUrl, options);
+    return callAPI(apiUrl, options, authSupplier);
 }
 
-export function httpPost(url, authToken, body, queryParams = {}) {
+export function httpPost(url, authSupplier, body, queryParams = {}) {
     let apiUrl = url;
     // Add query parameters to the URL if provided
     if (Object.keys(queryParams).length > 0) {
@@ -33,38 +32,50 @@ export function httpPost(url, authToken, body, queryParams = {}) {
             .join('&');
         apiUrl += `?${queryString}`;
     }
-    var myHeaders = new Headers();
-    myHeaders.append('x-auth-user', 'Bearer ' + authToken);
-    myHeaders.append('Content-Type', 'application/json');
+    var headers = new Headers();
+    headers.append('Content-Type', 'application/json');
     var options = {
         method: 'POST',
-        headers: myHeaders,
+        headers: headers,
         mode: 'cors',
         body: body
     };
-    return callAPI(apiUrl, options);
+    return callAPI(apiUrl, options, authSupplier);
 }
 
-export function uploadFile(url, authToken, body) {
-    var myHeaders = new Headers();
-    myHeaders.append('x-auth-user', 'Bearer ' + authToken);
+export function uploadFile(url, authSupplier, body) {
     var options = {
         method: 'POST',
-        headers: myHeaders,
+        headers: new Headers(),
         mode: 'cors',
         body: body
     };
-    return callAPI(url, options);
+    return callAPI(url, options, authSupplier);
 }
 
-function callAPI(url, options) {
-    return fetch(url, options)
-        .then(response => {
+function callAPI(url, options, authSupplier, forceTokenRefresh = false) {
+    if (authSupplier) {
+        return authSupplier(forceTokenRefresh).then(accessToken => {
+            options.headers.append('Authorization', `Bearer ${accessToken}`);
+            return fetch(url, options);
+        }).then(response => {
+            if (!response.ok) {
+                if (!forceTokenRefresh && response.status === 401) {
+                    return callAPI(url, options, authSupplier, true);
+                }
+                return handleFetchError(response);
+            }
+            return response;
+        });
+    } else {
+        return fetch(url, options).then(response => {
+            log(`OK? ${response.ok}`);
             if (!response.ok) {
                 return handleFetchError(response);
             }
             return response;
         });
+    }
 }
 
 function handleFetchError(response) {
