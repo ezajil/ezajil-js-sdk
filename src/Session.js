@@ -1,4 +1,3 @@
-import { generateSignedToken } from './utils/crypto';
 import { httpGet, httpPost } from './utils/http';
 import Transport from './Transport';
 import Chatroom from './Chatroom';
@@ -20,11 +19,7 @@ export default class Session extends EventEmitter {
         : 'http://' + appCredentials.endpoint;
         this.wsEndpoint = isSsl ? 'wss://' + appCredentials.endpoint + '/chat'
         : 'ws://' + appCredentials.endpoint + '/chat';
-        // this.authToken = generateSignedToken({
-            //     organizationId: appCredentials.organizationId,
-            //     projectId: appCredentials.projectId,
-            //     ...currentUser
-            // }, appCredentials.secretKey);
+        this.apiKey = appCredentials.secretKey;
         this.currentUser = currentUser;
         this.appCredentials = appCredentials;
         this.tokenManager = new TokenManager(this);
@@ -90,7 +85,7 @@ export default class Session extends EventEmitter {
 
     createSingleChatroom(name, participantId, metadata, callback) {
         const body = JSON.stringify({ 'name': name, 'participantId': participantId, 'metadata': metadata });
-        httpPost(`${this.apiEndpoint}/api/chatrooms/single`, (refresh) => this.tokenManager.get(refresh), body)
+        httpPost(`${this.apiEndpoint}/api/chatrooms/single`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .then(response => {
                 response.json().then(data => {
                     const chatroom = new Chatroom(this, data.chatroomId, data.name, data.latestMessage,
@@ -103,7 +98,7 @@ export default class Session extends EventEmitter {
 
     createGroupChatroom(name, participantIds, metadata, callback) {
         const body = JSON.stringify({ 'name': name, 'participantIds': participantIds, 'metadata': metadata });
-        httpPost(`${this.apiEndpoint}/api/chatrooms/group`, (refresh) => this.tokenManager.get(refresh), body)
+        httpPost(`${this.apiEndpoint}/api/chatrooms/group`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .then(response => {
                 response.json().then(data => {
                     const chatroom = new Chatroom(this, data.chatroomId, data.name, 
@@ -116,7 +111,7 @@ export default class Session extends EventEmitter {
     }
 
     getChatroom(chatroomId, callback) {
-        httpGet(`${this.apiEndpoint}/api/chatrooms/${chatroomId}`, (refresh) => this.tokenManager.get(refresh))
+        httpGet(`${this.apiEndpoint}/api/chatrooms/${chatroomId}`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
             .then(response => {
                 response.json().then(data => {
                     const chatroom = new Chatroom(this, data.chatroomId, data.name, 
@@ -129,7 +124,7 @@ export default class Session extends EventEmitter {
     }
 
     getChatroomsOfUser(callback, pagingState = null, limit = null) {
-        httpGet(`${this.apiEndpoint}/api/chatrooms/latest`, (refresh) => this.tokenManager.get(refresh), { pagingState: pagingState, limit: limit })
+        httpGet(`${this.apiEndpoint}/api/chatrooms/latest`, this.apiKey, (refresh) => this.tokenManager.get(refresh), { pagingState: pagingState, limit: limit })
             .then(response => {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
@@ -150,7 +145,7 @@ export default class Session extends EventEmitter {
 
 
     getSingleChatroomsOfUser(callback, pagingState = null, limit = null) {
-        httpGet(`${this.apiEndpoint}/api/chatrooms/latest/single`, (refresh) => this.tokenManager.get(refresh), { pagingState: pagingState, limit: limit })
+        httpGet(`${this.apiEndpoint}/api/chatrooms/latest/single`, this.apiKey, (refresh) => this.tokenManager.get(refresh), { pagingState: pagingState, limit: limit })
             .then(response => {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
@@ -165,7 +160,7 @@ export default class Session extends EventEmitter {
     }
 
     getGroupChatroomsOfUser(callback, pagingState = null, limit = null) {
-        httpGet(`${this.apiEndpoint}/api/chatrooms/latest/group`, (refresh) => this.tokenManager.get(refresh), { pagingState: pagingState, limit: limit })
+        httpGet(`${this.apiEndpoint}/api/chatrooms/latest/group`, this.apiKey, (refresh) => this.tokenManager.get(refresh), { pagingState: pagingState, limit: limit })
             .then(response => {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
@@ -180,7 +175,7 @@ export default class Session extends EventEmitter {
     }
 
     getChatroomUsers(chatroomId, callback) {
-        httpGet(`${this.apiEndpoint}/api/chatrooms/${chatroomId}/users`, (refresh) => this.tokenManager.get(refresh))
+        httpGet(`${this.apiEndpoint}/api/chatrooms/${chatroomId}/users`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
@@ -194,7 +189,7 @@ export default class Session extends EventEmitter {
 
     getUsers(userIds, callback) {
         const body = JSON.stringify({ 'userIds': userIds });
-        httpPost(`${this.apiEndpoint}/api/users/list`, (refresh) => this.tokenManager.get(refresh), body)
+        httpPost(`${this.apiEndpoint}/api/users/list`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
@@ -208,7 +203,7 @@ export default class Session extends EventEmitter {
 
     subscribeToUsersPresence(userIds, callback) {
         const body = JSON.stringify({ 'userIds': userIds });
-        httpPost(`${this.apiEndpoint}/api/users/subscribe`, (refresh) => this.tokenManager.get(refresh), body)
+        httpPost(`${this.apiEndpoint}/api/users/subscribe`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result =>
@@ -221,30 +216,15 @@ export default class Session extends EventEmitter {
             .catch(err => callback(null, err));
     }
 
-    // subscribeToUsersPresence(users, callback) {
-    //     const body = JSON.stringify({ 'users': users });
-    //     httpPost(`${this.apiEndpoint}/api/users/subscribe`, (refresh) => this.tokenManager.get(refresh), body)
-    //         .then(response => {
-    //             response.json().then(data => {
-    //                 const users = data.map(result =>
-    //                     new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
-    //                         result.lastSeen, result.online));
-    //                 callback(users, null);
-    //             });
-    //         })
-
-    //         .catch(err => callback(null, err));
-    // }
-
     unsubscribeFromUsersPresence(userIds, callback) {
         const body = JSON.stringify({ 'userIds': userIds });
-        httpPost(`${this.apiEndpoint}/api/users/unsubscribe`, (refresh) => this.tokenManager.get(refresh), body)
+        httpPost(`${this.apiEndpoint}/api/users/unsubscribe`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .catch(err => callback(null, err));
     }
 
     unsubscribeFromAllUsersPresence(callback) {
         const body = JSON.stringify({});
-        httpPost(`${this.apiEndpoint}/api/users/unsubscribe-all`, (refresh) => this.tokenManager.get(refresh), body)
+        httpPost(`${this.apiEndpoint}/api/users/unsubscribe-all`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .catch(err => callback(null, err));
     }
 

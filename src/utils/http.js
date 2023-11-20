@@ -1,8 +1,8 @@
 import APIError from '../APIError';
-import { log, logError } from './sdkLogger';
+import { generateUID } from './util';
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-export function httpGet(url, authSupplier, queryParams = {}) {
+export function httpGet(url, apiKey, authSupplier, queryParams = {}) {
     let apiUrl = url;
 
     // Add query parameters to the URL if provided
@@ -19,10 +19,10 @@ export function httpGet(url, authSupplier, queryParams = {}) {
         mode: 'cors',
         cache: 'default'
     };
-    return callAPI(apiUrl, options, authSupplier);
+    return callAPI(apiUrl, apiKey, authSupplier, options);
 }
 
-export function httpPost(url, authSupplier, body, queryParams = {}) {
+export function httpPost(url, apiKey, authSupplier, body, queryParams = {}) {
     let apiUrl = url;
     // Add query parameters to the URL if provided
     if (Object.keys(queryParams).length > 0) {
@@ -40,20 +40,22 @@ export function httpPost(url, authSupplier, body, queryParams = {}) {
         mode: 'cors',
         body: body
     };
-    return callAPI(apiUrl, options, authSupplier);
+    return callAPI(apiUrl, apiKey, authSupplier, options);
 }
 
-export function uploadFile(url, authSupplier, body) {
+export function uploadFile(url, apiKey, authSupplier, body) {
     var options = {
         method: 'POST',
         headers: new Headers(),
         mode: 'cors',
         body: body
     };
-    return callAPI(url, options, authSupplier);
+    return callAPI(apiUrl, apiKey, authSupplier, options);
 }
 
-function callAPI(url, options, authSupplier, forceTokenRefresh = false) {
+function callAPI(url, apiKey, authSupplier, options, forceTokenRefresh = false) {
+    options.headers.append('uid', generateUID());
+    options.headers.append('api-key', apiKey);
     if (authSupplier) {
         return authSupplier(forceTokenRefresh).then(accessToken => {
             options.headers.append('Authorization', `Bearer ${accessToken}`);
@@ -69,7 +71,6 @@ function callAPI(url, options, authSupplier, forceTokenRefresh = false) {
         });
     } else {
         return fetch(url, options).then(response => {
-            log(`OK? ${response.ok}`);
             if (!response.ok) {
                 return handleFetchError(response);
             }
