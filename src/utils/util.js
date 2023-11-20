@@ -13,3 +13,31 @@ export function generateUUID() {
         return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
 }
+
+export function generateUID() {
+    const timestamp = new Date().getTime();
+    let hexStr = timestamp.toString(16);
+    if (hexStr.length % 2) {
+        hexStr = '0' + hexStr;
+    }
+    const max = 16;
+    const r1 = randombetween(1, max - 3);
+    const r2 = randombetween(1, max - 2 - r1);
+    const r3 = randombetween(1, max - 1 - r1 - r2);
+    const r4 = max - r1 - r2 - r3;
+    hexStr = '4' + r1.toString(16) + r2.toString(16) + r3.toString(16) + r4.toString(16) + hexStr.split('').reverse().join('');
+    let cpt = hexStr.length - 1;
+    let uuid = 'xxxxxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx';
+    while (cpt >= 0) {
+        uuid = uuid.replace('x', hexStr[cpt]);
+        cpt--;
+    }
+    uuid = uuid.replace(/[x]/g, function (c) {
+        return randombetween(0, 15).toString(16);
+    }.bind(this));
+    return uuid.split('').reverse().join('');
+}
+
+function randombetween(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}

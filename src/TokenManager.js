@@ -6,6 +6,7 @@ export default class TokenManager {
     constructor(session) {
         this.apiEndpoint = session.apiEndpoint;
         this.appCredentials = session.appCredentials;
+        this.apiKey = session.apiKey;
         this.currentUser = session.currentUser;
         this.accessToken = null;
     }
@@ -17,7 +18,7 @@ export default class TokenManager {
             'secretKey': this.appCredentials.secretKey,
             'user': this.currentUser
         });
-        return httpPost(`${this.apiEndpoint}/api/users/auth`, null, body)
+        return httpPost(`${this.apiEndpoint}/api/users/auth`, this.apiKey, null, body)
             .then(response => {
                 return response.json().then(data => {
                     log(`response data: ${JSON.stringify(data)}`);
