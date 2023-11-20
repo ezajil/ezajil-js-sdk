@@ -9,19 +9,15 @@ import TokenManager from './TokenManager';
 
 export default class Session extends EventEmitter {
 
-    constructor(currentUser, appCredentials, config = {}) {
+    constructor(endpoint, apiKey, currentUser, config = {}) {
         super();
         sdkConfig.enableLogging = config.enableLogging || false;
         // TODO: remove protocol if added
-        const isSsl = !appCredentials.endpoint.startsWith('localhost')
-        && !appCredentials.endpoint.startsWith('127.0.0.1');
-        this.apiEndpoint = isSsl ? 'https://' + appCredentials.endpoint
-        : 'http://' + appCredentials.endpoint;
-        this.wsEndpoint = isSsl ? 'wss://' + appCredentials.endpoint + '/chat'
-        : 'ws://' + appCredentials.endpoint + '/chat';
-        this.apiKey = appCredentials.secretKey;
+        const isSsl = !endpoint.startsWith('localhost') && !endpoint.startsWith('127.0.0.1');
+        this.apiEndpoint = isSsl ? 'https://' + endpoint: 'http://' + endpoint;
+        this.wsEndpoint = isSsl ? 'wss://' + endpoint + '/chat' : 'ws://' + endpoint + '/chat';
+        this.apiKey = apiKey;
         this.currentUser = currentUser;
-        this.appCredentials = appCredentials;
         this.tokenManager = new TokenManager(this);
         this.transport = new Transport(this);
         this.bindTransportEvents();

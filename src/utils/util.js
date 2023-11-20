@@ -32,12 +32,16 @@ export function generateUID() {
         uuid = uuid.replace('x', hexStr[cpt]);
         cpt--;
     }
-    uuid = uuid.replace(/[x]/g, function (c) {
+    uuid = uuid.replace(/[x]/g, (c) => {
         return randombetween(0, 15).toString(16);
-    }.bind(this));
+    });
     return uuid.split('').reverse().join('');
 }
 
 function randombetween(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
+    let result;
+    do {
+        result = Math.floor(Math.random() * (max - min + 1) + min);
+    } while (result === 4);
+    return result;
 }

@@ -12,12 +12,7 @@ export default class TokenManager {
     }
 
     fetchAccessToken() {
-        const body = JSON.stringify({
-            'organizationId': this.appCredentials.organizationId,
-            'projectId': this.appCredentials.projectId,
-            'secretKey': this.appCredentials.secretKey,
-            'user': this.currentUser
-        });
+        const body = JSON.stringify(this.currentUser);
         return httpPost(`${this.apiEndpoint}/api/users/auth`, this.apiKey, null, body)
             .then(response => {
                 return response.json().then(data => {
