@@ -115,7 +115,7 @@ declare module 'ezajil-js-sdk' {
 
     // Declare the 'Session' class
     export class Session {
-        constructor(currentUser: User, appCredentials: AppCredentials, sdkConfig: SDKConfig);
+        constructor(endpoint: string, apiKey: string, currentUser: User, sdkConfig: SDKConfig);
         connect(): void;
         isOpen(): boolean;
         createSingleChatroom(name: string, participantId: string, metadata: Map<string, string>, callback: (chatroom: Chatroom | null, error: APIError | null) => void): void;
