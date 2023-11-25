@@ -43,7 +43,7 @@ export function httpPost(url, apiKey, authSupplier, body, queryParams = {}) {
     return callAPI(apiUrl, apiKey, authSupplier, options);
 }
 
-export function uploadFile(url, apiKey, authSupplier, body) {
+export function uploadFile(apiUrl, apiKey, authSupplier, body) {
     var options = {
         method: 'POST',
         headers: new Headers(),
