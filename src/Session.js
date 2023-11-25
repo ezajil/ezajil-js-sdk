@@ -20,10 +20,18 @@ export default class Session extends EventEmitter {
         this.currentUser = currentUser;
         this.tokenManager = new TokenManager(this);
         this.transport = new Transport(this);
-        this.bindTransportEvents();
     }
 
-    bindTransportEvents() {
+    connect() {
+        this._bindTransportEvents();
+        this.transport.connect();
+    }
+
+    close() {
+        this.transport.close();
+    }
+
+    _bindTransportEvents() {
         this.transport.on('open', () => {
             log('Connection opened');
         });
