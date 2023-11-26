@@ -102,3 +102,18 @@ function handleFetchError(response) {
         throw new APIError(response.status, message, details);
     });
 }
+
+function buildBadRequestErrorMessage(payload) {
+    const title = payload.title || "Error";
+    const invalidParameters = payload["invalid-parameters"] || [];
+  
+    let errorMessage = invalidParameters.length > 0 ?
+      invalidParameters.map(param => {
+        const propertyName = param.property || "Unknown Property";
+        const reason = param.reason || "Unknown Reason";
+        const value = param.value || "Unknown Value";
+        return `Invalid value '${value}' for parameter '${propertyName}': ${reason}`;
+      }).join('\n') : title;
+  
+    return errorMessage;
+  }
