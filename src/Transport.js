@@ -31,7 +31,7 @@ export default class Transport extends EventEmitter {
                     this.emit('close', 4000, error.message, true);
                 } else if (error.status === 401) {
                     // Not retryable
-                    this.emit('close', 4001, 'Unauthorized', true);
+                    this.emit('close', 4001, error.message, true);
                 } else if (error.status === 500) {
                     // Retry
                     this._reconnect();
@@ -106,15 +106,13 @@ export default class Transport extends EventEmitter {
         }
         catch (err) {
             this.emit('error', 5002, err);
+            this._reconnect();
         }
     }
 
     _reconnect(forceTokenRefresh = false) {
-        if (!this.reconnectAttempts) {
-            this.reconnectAttempts = 0;
-        }
-        this.reconnectAttempts++;
         this.close();
+        this.reconnectAttempts++;
         let reconnectInterval = Math.min(this.reconnectAttempts * 1000, 10000);
         log(`Attempt '${this.reconnectAttempts}', will retry after ${reconnectInterval}ms`);
         this.reconnectId = setTimeout(() => this.connect(forceTokenRefresh), reconnectInterval);
@@ -122,6 +120,7 @@ export default class Transport extends EventEmitter {
 
     close() {
         clearTimeout(this.pingTimeoutId);
+        this._clearReconnectAttemptIfExists();
         if (!this.conn) {
             return;
         }

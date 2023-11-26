@@ -11,10 +11,12 @@ describe('Session Class', () => {
     let server;
     beforeEach(() => {
         server = new WebSocket('ws://localhost:1234/chat');
+        server.on('error', (error) => {
+            console.error('WebSocket error:', error);
+        });
         fetchMock.resetMocks();
     });
     afterEach((done) => {
-        console.log('after each');
         server.closed.then(() => done());
         server.close({ code: 4000, reason: 'string', wasClean: true });
     });
@@ -46,6 +48,8 @@ describe('Session Class', () => {
             expect(code).toBe(4001);
             expect(reason).toBe('Unauthorized');
             expect(isClientError).toBeTruthy();
+            // No attempt to reconnect
+            expect(session.transport.reconnectId).toBeUndefined();
             done();
         });
         session.connect();
@@ -56,8 +60,10 @@ describe('Session Class', () => {
         mockBadRequestAuth();
         session.on('disconnected', (code, reason, isClientError) => {
             expect(code).toBe(4000);
-            expect(reason).toBe('Unauthorized');
+            expect(reason).toBe('Invalid value \'\' for parameter \'userId\': must not be blank');
             expect(isClientError).toBeTruthy();
+            // No attempt to reconnect
+            expect(session.transport.reconnectId).toBeUndefined();
             done();
         });
         session.connect();
@@ -68,11 +74,27 @@ describe('Session Class', () => {
         mockInternalErrorAuth();
         session.on('disconnected', (code, reason, isClientError) => {
             expect(code).toBe(5000);
-            expect(reason).toBe('Unauthorized');
-            expect(isClientError).toBeTruthy();
+            expect(reason).toBe('An unexpected error has occurred. Our team has been alerted, and we are actively working to resolve it shortly');
+            expect(isClientError).toBeFalsy();
+            // Attempts to reconnect
+            expect(session.transport.reconnectId).not.toBeUndefined();
             done();
         });
         session.connect();
+    });
+
+    it('should force refresh on error (handshake failure)', (done) => {
+        const session = new Session('localhost:1234', 'api_key', new User('1', 'ezajil1'));
+        mockSuccessfulAuth(); // Expired access token
+        session.on('error', (event) => {
+            // Attempts to reconnect
+            expect(session.transport.reconnectId).not.toBeUndefined();
+            session.close();
+            done();
+        });
+        const spy = jest.spyOn(session.transport, 'connect');
+        session.connect();
+        server.error();
     });
 });
 

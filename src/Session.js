@@ -44,7 +44,6 @@ export default class Session extends EventEmitter {
             this.emit('disconnected', code, reason, isClientError);
         });
         this.transport.on('error', (event) => {
-            logError('Connection errored', event);
             this.emit('error', event);
         });
         this.transport.on('online-user', (user) => {
