@@ -63,7 +63,7 @@ function callAPI(url, apiKey, authSupplier, options, forceTokenRefresh = false) 
         }).then(response => {
             if (!response.ok) {
                 if (!forceTokenRefresh && response.status === 401) {
-                    return callAPI(url, options, authSupplier, true);
+                    return callAPI(url, authSupplier, options, true);
                 }
                 return handleFetchError(response);
             }
