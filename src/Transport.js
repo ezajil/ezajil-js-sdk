@@ -120,7 +120,6 @@ export default class Transport extends EventEmitter {
 
     close() {
         clearTimeout(this.pingTimeoutId);
-        this._clearReconnectAttemptIfExists();
         if (!this.conn) {
             return;
         }

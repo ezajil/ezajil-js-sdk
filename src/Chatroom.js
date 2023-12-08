@@ -123,20 +123,24 @@ export default class Chatroom extends EventEmitter {
             return;
         }
         const author = this.currentUser;
+        const messageId = generateUUID();
         let formData = new FormData();
+        formData.append('chatroomId', this.chatroomId);
+        formData.append('author', author.userId);
+        formData.append('messageId', messageId);
         formData.append('file', file);
-        uploadFile(`${this.apiEndpoint}/dam/upload/${this.chatroomId}`, this.apiKey, (refresh) => this.tokenManager.get(refresh), formData)
+        uploadFile(`${this.apiEndpoint}/dam/upload`, this.apiKey, (refresh) => this.tokenManager.get(refresh), formData)
             .then(response => {
                 response.json().then(uploadResult => {
                     let message = {
                         'chatroomId': this.chatroomId,
-                        'messageId': generateUUID(),
+                        'messageId': messageId,
                         'author': author.userId,
                         'mediaUrls': uploadResult.links,
                         'preview': uploadResult.preview,
                         'screenName': author.screenName,
                         'users': this.participantIds,
-                        'sendingDate': (new Date).getTime(),
+                        'sendingDate': uploadResult.sendingDate,
                     };
                     this._sendTextMessage(message);
                     callback(message, null);
