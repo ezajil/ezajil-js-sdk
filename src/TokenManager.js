@@ -16,7 +16,7 @@ export default class TokenManager {
         return httpPost(`${this.apiEndpoint}/api/users/auth`, this.apiKey, null, body)
             .then(response => {
                 return response.json().then(data => {
-                    return data.accessToken;
+                    return Promise.resolve(data.accessToken);
                 }).catch(error => logError(`Failed to fetch access token: ${error}`));
             });
     }

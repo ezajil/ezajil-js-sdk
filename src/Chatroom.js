@@ -104,7 +104,7 @@ export default class Chatroom extends EventEmitter {
                 'screenName': author.screenName,
                 'content': textMessage,
                 'users': this.participantIds,
-                'sendingDate': (new Date).getTime(),
+                'sendingDate': (performance.now() + performance.timeOrigin) * 1e6,
             };
             this._sendTextMessage(message);
             return message;

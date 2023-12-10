@@ -17,13 +17,18 @@ export default class Transport extends EventEmitter {
     }
 
     connect(forceTokenRefresh = false) {
+        if (this.connectionInProgress) {
+            log(`There is already an in progress connection attempt (skip)`);
+            return;
+        }
+        this.connectionInProgress = true;
         this.tokenManager.get(forceTokenRefresh)
         .then(accessToken => {
-                // TODO: Handle handshake errors (retry with new token on 401 - expired token)
                 this.conn = new WebSocket(
                     this.wsEndpoint,
                     accessToken
                 );
+                this._clearReconnectAttemptIfExists();
                 this._bindWsEvents();
             }).catch(error => {
                 if (error.status === 400) {
@@ -37,6 +42,8 @@ export default class Transport extends EventEmitter {
                     this._reconnect();
                     this.emit('close', 5000, error.message, false);
                 }
+            }).finally(() => {
+                this.connectionInProgress = false;
             });
     }
 
@@ -55,7 +62,6 @@ export default class Transport extends EventEmitter {
     }
 
     _onOpen() {
-        this._clearReconnectAttemptIfExists();
         this.emit('open');
     }
 

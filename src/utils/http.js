@@ -62,8 +62,11 @@ function callAPI(url, apiKey, authSupplier, options, forceTokenRefresh = false) 
             return fetch(url, options);
         }).then(response => {
             if (!response.ok) {
-                if (!forceTokenRefresh && response.status === 401) {
-                    return callAPI(url, authSupplier, options, true);
+                if (response.status === 401) {
+                    options.headers.delete('uid');
+                    options.headers.delete('api-key');
+                    options.headers.delete('Authorization');
+                    return callAPI(url, apiKey, authSupplier, options, true);
                 }
                 return handleFetchError(response);
             }
