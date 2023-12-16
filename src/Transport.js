@@ -19,42 +19,35 @@ export default class Transport extends EventEmitter {
         super();
         this.connectionState = ConnectionState.DISCONNECTED;
         this.pingInterval = 10000;
+        this.maxReconnectInterval = 30000;
+        this.reconnectExponentialBackoff = 2;
         this.wsEndpoint = session.wsEndpoint;
         this.tokenManager = session.tokenManager;
     }
 
     connect(forceTokenRefresh = false) {
-        if (this.connectionState === ConnectionState.CONNECTING ||
-            this.connectionState === ConnectionState.CONNECTED) {
+        if (this.connectionState !== ConnectionState.DISCONNECTED) {
             log('Skip connect. Already connecting or connected');
             return;
         }
         this.connectionState = ConnectionState.CONNECTING;
         this.tokenManager.get(forceTokenRefresh)
             .then(accessToken => {
-                this.conn = new WebSocket(
-                    this.wsEndpoint,
-                    accessToken
-                );
+                this.conn = new WebSocket(this.wsEndpoint, accessToken);
                 this._bindWsEvents();
             }).catch(error => {
                 this.connectionState = ConnectionState.DISCONNECTED;
-                if (error.status === 400) {
-                    // Not retryable
-                    this.emit('close', 4000, error.message, true);
-                } else if (error.status === 401) {
-                    // Not retryable
-                    this.emit('close', 4001, error.message, true);
-                } else if (error.status === 500) {
-                    // Retry
-                    log('connect.reconnect');
-                    this._reconnect();
-                    this.emit('close', 5000, error.message, false);
-                } else {
-                    logError(`not http error ${error}`);
-                    this._reconnect();
-                }
+                this._handleConnectionError(error);
             });
+    }
+
+    _handleConnectionError(error) {
+        if ([400, 401].includes(error.status)) {
+            this.emit('close', error.status, error.message, true);
+        } else {
+            this.emit('close', error.status || 500, error.message, false);
+            this._reconnect();
+        }
     }
 
     _bindWsEvents() {
@@ -134,26 +127,29 @@ export default class Transport extends EventEmitter {
         }
     }
 
-    _reconnect(forceTokenRefresh = false) {
-        if (this.connectionState === ConnectionState.CONNECTING ||
-            this.connectionState === ConnectionState.CONNECTED) {
+    _reconnect() {
+        if (this.connectionState !== ConnectionState.DISCONNECTED) {
             return;
         }
-        this.reconnectAttempts = this.reconnectAttempts ? this.reconnectAttempts + 1 : 1;
-        let reconnectInterval = Math.min(this.reconnectAttempts * 1000, 10000);
-        log(`Attempt '${this.reconnectAttempts}', will retry after ${reconnectInterval}ms`);
-        this.reconnectId = setTimeout(() => this.connect(forceTokenRefresh), reconnectInterval);
+        let reconnectInterval = Math.min(
+            this.reconnectAttempts * this.reconnectExponentialBackoff * 1000, 
+            this.maxReconnectInterval
+        );
+        log(`Reconnect attempt '${this.reconnectAttempts}', retry after ${reconnectInterval}ms`);
+        this.reconnectAttempts = (this.reconnectAttempts || 0) + 1;
+        this.reconnectId = setTimeout(() => this.connect(true), reconnectInterval);
     }
 
     close() {
-        log('close method called');
+        log('Closing connection');
+        this.connectionState = ConnectionState.DISCONNECTED;
         clearTimeout(this.pingTimeoutId);
-        if (!this.conn) {
-            return;
+        clearTimeout(this.reconnectId);
+        if (this.conn) {
+            this._unbindWsEvents();
+            this.conn.close();
+            this.conn = null;
         }
-        this._unbindWsEvents();
-        this.conn.close();
-        this.conn = null;
     }
 
     _clearReconnectAttemptIfExists() {
