@@ -17,7 +17,7 @@ export default class TokenManager {
             .then(response => {
                 return response.json().then(data => {
                     return Promise.resolve(data.accessToken);
-                }).catch(error => logError(`Failed to fetch access token: ${error}`));
+                });
             });
     }
 

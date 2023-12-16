@@ -8,29 +8,37 @@ const WS_EVENTS = {
     MESSAGE: 'message'
 };
 
+const ConnectionState = {
+    CONNECTING: 'connecting',
+    CONNECTED: 'connected',
+    DISCONNECTED: 'disconnected'
+};
+
 export default class Transport extends EventEmitter {
     constructor(session) {
         super();
+        this.connectionState = ConnectionState.DISCONNECTED;
         this.pingInterval = 10000;
         this.wsEndpoint = session.wsEndpoint;
         this.tokenManager = session.tokenManager;
     }
 
     connect(forceTokenRefresh = false) {
-        if (this.connectionInProgress) {
-            log(`There is already an in progress connection attempt (skip)`);
+        if (this.connectionState === ConnectionState.CONNECTING ||
+            this.connectionState === ConnectionState.CONNECTED) {
+            log('Skip connect. Already connecting or connected');
             return;
         }
-        this.connectionInProgress = true;
+        this.connectionState = ConnectionState.CONNECTING;
         this.tokenManager.get(forceTokenRefresh)
-        .then(accessToken => {
+            .then(accessToken => {
                 this.conn = new WebSocket(
                     this.wsEndpoint,
                     accessToken
                 );
-                this._clearReconnectAttemptIfExists();
                 this._bindWsEvents();
             }).catch(error => {
+                this.connectionState = ConnectionState.DISCONNECTED;
                 if (error.status === 400) {
                     // Not retryable
                     this.emit('close', 4000, error.message, true);
@@ -39,11 +47,13 @@ export default class Transport extends EventEmitter {
                     this.emit('close', 4001, error.message, true);
                 } else if (error.status === 500) {
                     // Retry
+                    log('connect.reconnect');
                     this._reconnect();
                     this.emit('close', 5000, error.message, false);
+                } else {
+                    logError(`not http error ${error}`);
+                    this._reconnect();
                 }
-            }).finally(() => {
-                this.connectionInProgress = false;
             });
     }
 
@@ -62,13 +72,17 @@ export default class Transport extends EventEmitter {
     }
 
     _onOpen() {
+        this.connectionState = ConnectionState.CONNECTED;
+        this._clearReconnectAttemptIfExists();
         this.emit('open');
     }
 
     _onClose(closeEvent) {
+        this.connectionState = ConnectionState.DISCONNECTED;
         clearTimeout(this.pingTimeoutId);
         const isClientError = [4000, 4001, 4004, 4006].includes(closeEvent.code);
         if (closeEvent.code && !isClientError) {
+            log('_onClose.reconnect');
             this._reconnect();
         }
         this.emit('close', closeEvent.code, closeEvent.reason, isClientError);
@@ -76,6 +90,9 @@ export default class Transport extends EventEmitter {
 
     _onError(event) {
         if (event && event.target.readyState === 3) {
+            this.connectionState = ConnectionState.DISCONNECTED;
+            log('_onError.reconnect');
+            // Maybe due to 401 handshake failure
             this._reconnect(true);
         }
         this.emit('error', event);
@@ -112,19 +129,24 @@ export default class Transport extends EventEmitter {
         }
         catch (err) {
             this.emit('error', 5002, err);
+            this.close();
             this._reconnect();
         }
     }
 
     _reconnect(forceTokenRefresh = false) {
-        this.close();
-        this.reconnectAttempts++;
+        if (this.connectionState === ConnectionState.CONNECTING ||
+            this.connectionState === ConnectionState.CONNECTED) {
+            return;
+        }
+        this.reconnectAttempts = this.reconnectAttempts ? this.reconnectAttempts + 1 : 1;
         let reconnectInterval = Math.min(this.reconnectAttempts * 1000, 10000);
         log(`Attempt '${this.reconnectAttempts}', will retry after ${reconnectInterval}ms`);
         this.reconnectId = setTimeout(() => this.connect(forceTokenRefresh), reconnectInterval);
     }
 
     close() {
+        log('close method called');
         clearTimeout(this.pingTimeoutId);
         if (!this.conn) {
             return;

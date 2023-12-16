@@ -1,4 +1,5 @@
 import APIError from '../APIError';
+import { logError } from './sdkLogger';
 import { generateUID } from './util';
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
@@ -59,7 +60,7 @@ function callAPI(url, apiKey, authSupplier, options, forceTokenRefresh = false) 
     if (authSupplier) {
         return authSupplier(forceTokenRefresh).then(accessToken => {
             options.headers.append('Authorization', `Bearer ${accessToken}`);
-            return fetch(url, options);
+            return fetchWithTimeout(url, options);
         }).then(response => {
             if (!response.ok) {
                 if (response.status === 401) {
@@ -73,7 +74,7 @@ function callAPI(url, apiKey, authSupplier, options, forceTokenRefresh = false) 
             return response;
         });
     } else {
-        return fetch(url, options).then(response => {
+        return fetchWithTimeout(url, options).then(response => {
             if (!response.ok) {
                 return handleFetchError(response);
             }
@@ -118,3 +119,17 @@ function buildBadRequestErrorMessage(payload) {
 
     return errorMessage;
 }
+
+function fetchWithTimeout (url, options, timeout = 10_000) {
+    const timeoutPromise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            logError('Timeout');
+            reject(new Error('Request timed out'));
+        }, timeout);
+    });
+
+    return Promise.race([
+        fetch(url, options),
+        timeoutPromise
+    ]);
+};
