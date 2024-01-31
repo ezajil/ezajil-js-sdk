@@ -123,7 +123,6 @@ function buildBadRequestErrorMessage(payload) {
 function fetchWithTimeout (url, options, timeout = 10_000) {
     const timeoutPromise = new Promise((resolve, reject) => {
         setTimeout(() => {
-            logError('Timeout');
             reject(new Error('Request timed out'));
         }, timeout);
     });

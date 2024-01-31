@@ -4,7 +4,7 @@ import Chatroom from './Chatroom';
 import { EventEmitter } from 'events';
 import User from './User';
 import { sdkConfig } from './utils/sdkConfig';
-import { log, logError } from './utils/sdkLogger';
+import { log } from './utils/sdkLogger';
 import TokenManager from './TokenManager';
 
 export default class Session extends EventEmitter {
@@ -12,7 +12,7 @@ export default class Session extends EventEmitter {
     constructor(endpoint, apiKey, currentUser, config = {}) {
         super();
         sdkConfig.enableLogging = config.enableLogging || false;
-        // TODO: remove protocol if added
+        endpoint = this._removeProtocol(_removeProtocol);
         const isSsl = !endpoint.startsWith('localhost') && !endpoint.startsWith('127.0.0.1');
         this.apiEndpoint = isSsl ? 'https://' + endpoint: 'http://' + endpoint;
         this.wsEndpoint = isSsl ? 'wss://' + endpoint + '/chat' : 'ws://' + endpoint + '/chat';
@@ -22,6 +22,10 @@ export default class Session extends EventEmitter {
         this.transport = new Transport(this);
     }
 
+    _removeProtocol(url) {
+        return url.replace(/^[a-zA-Z]+:\/\//, '');
+    }
+    
     connect() {
         this._bindTransportEvents();
         this.transport.connect();
