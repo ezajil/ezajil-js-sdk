@@ -32,4 +32,4 @@ npm install ezajil-js-sdk --save
 ```
 <br />
 
-For a comprehensive guide on how to use this library, please visit [https://ezajil.io/documentation/javascript] for detailed documentation and examples.
+For a comprehensive guide on how to use this library, please visit https://ezajil.io/documentation/javascript for detailed documentation and examples.
