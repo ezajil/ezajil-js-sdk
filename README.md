@@ -39,10 +39,10 @@ obtained from the dashboard: your API key and the endpoint URL.
 
 Here's how to use them to initialize your session:
 ```javascript
-import {{ '{' }} Session, User {{ '}' }} from 'ezajil-js-sdk';
+import { Session, User } from 'ezajil-js-sdk';
 
 const currentUser = new User('yourUserId', 'yourScreenName', 'yourAvatarUrl', 'yourEmail');
-const sdkConfig = {{ '{' }} enableLogging: true {{ '}' }};
+const sdkConfig = { enableLogging: true };
 const session = new Session('yourEndpoint', 'yourApiKey', currentUser, sdkConfig);
 
 session.connect();
@@ -87,11 +87,11 @@ It requires the current user instance and credentials for authentication
 To create a session, use the following code snippet while providing your own credentials:
 ```javascript
 const user = new User(userId, screenName, avatarUrl, email);
-const appCredentials = {{ '{' }}
+const appCredentials = {
 organizationId: 'your-organization-id',
 projectId: 'your-project-id',
 secretKey: 'your-secret-key'
-{{ '}' }};
+};
 
 const session = new Session(user, appCredentials);
 ```
@@ -115,87 +115,87 @@ The Session component emits the following events:
 - `messages-read` Triggered when a read receipt is received for a message.
 You can handle these events by attaching event listeners using the `on` method of the Session instance.
 ```javascript
-session.on('connected', () => {{ '{' }}
+session.on('connected', () => {
 // Handle the connected event
-{{ '}' }});
+});
 
-session.on('disconnected', (code, reason) => {{ '{' }}
+session.on('disconnected', (code, reason) => {
 // The event has the code and reason associated to the disconnection for easier debugging
-{{ '}' }});
+});
 
-session.on('error', (error) => {{ '{' }}
+session.on('error', (error) => {
 // The event includes a payload with a code, message and causing error object if it exists.
 // This will usually include the WebSocket close codes.
 // See: https://www.iana.org/assignments/websocket/websocket.xhtml
-// {{ '{' }} "code": 1006, "message": "Error on WS connection", "error": {{ '{' }} ... {{ '}' }}{{ '}' }}
+// { "code": 1006, "message": "Error on WS connection", "error": { ... }
 });
 
-session.on('error-message', (sdkError) => {{ '{' }}
+session.on('error-message', (sdkError) => {
 // This happens when you have reached an SDK limitations.
 // For example if the chat messages limit has been reached, you get as a return the following payload:
-// {{ '{' }} "code": 4003, "reason": "Chat messages limit has been exceeded",
-// "chatMessage": {{ '{' }} // chat message that errored {{ '}' }}{{ '}' }}
-{{ '}' }});
+// { "code": 4003, "reason": "Chat messages limit has been exceeded",
+// "chatMessage": { // chat message that errored }
+});
 
-session.on('online-user', (onlineUser) => {{ '{' }}
+session.on('online-user', (onlineUser) => {
 // A user is now online
-// {{ '{' }}"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
+// {"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
 // "projectId":"d7bc5e8f-2f3b-427c-8b31-2c3d118fcd52",
-// "userId":"ezajil2","screenName":"ezajil2","avatarUrl":null{{ '}' }}
-{{ '}' }});
+// "userId":"ezajil2","screenName":"ezajil2","avatarUrl":null}
+});
 
-session.on('offline-user', (offlineUser) => {{ '{' }}
+session.on('offline-user', (offlineUser) => {
 // A user is now offline
-// {{ '{' }}"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
-// "projectId":"d7bc5e8f-2f3b-427c-8b31-2c3d118fcd52","userId":"ezajil1"{{ '}' }}
-{{ '}' }});
+// {"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
+// "projectId":"d7bc5e8f-2f3b-427c-8b31-2c3d118fcd52","userId":"ezajil1"}
+});
 
-session.on('chat-message', (chatMessage) => {{ '{' }}
+session.on('chat-message', (chatMessage) => {
 // Current user received a new message
-// {{ '{' }}"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
+// {"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
 // "projectId":"d7bc5e8f-2f3b-427c-8b31-2c3d118fcd52",
 // "messageId":"6642a6c3-fbea-4796-aeee-2c4cb64aeb06",
 // "chatroomId":"72621fb3-f89c-4d39-a368-41448fd19858",
 // "author":"ezajil2","screenName":"ezajil2","content":"test",
 // "mediaUrls":null,"preview":false,"sendingDate":1690311786401,
-// "users":["ezajil1","ezajil2"]{{ '}' }}
-{{ '}' }});
+// "users":["ezajil1","ezajil2"]}
+});
 
-session.on('message-sent', (messageSent) => {{ '{' }}
+session.on('message-sent', (messageSent) => {
 // Current user received a sent message receipt
-// {{ '{' }}"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
+// {"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
 // "projectId":"d7bc5e8f-2f3b-427c-8b31-2c3d118fcd52",
 // "chatroomId":"72621fb3-f89c-4d39-a368-41448fd19858",
-// "messageId":"6642a6c3-fbea-4796-aeee-2c4cb64aeb06"{{ '}' }}
-{{ '}' }});
+// "messageId":"6642a6c3-fbea-4796-aeee-2c4cb64aeb06"}
+});
 
-session.on('user-typing', (userTyping) => {{ '{' }}
+session.on('user-typing', (userTyping) => {
 // Current user is informed that a user is typing in one of the chatrooms
-// {{ '{' }}"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
+// {"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
 // "projectId":"d7bc5e8f-2f3b-427c-8b31-2c3d118fcd52",
 // "chatroomId":"72621fb3-f89c-4d39-a368-41448fd19858",
-// "userId":"ezajil2"{{ '}' }}
-{{ '}' }});
+// "userId":"ezajil2"}
+});
 
-session.on('messages-delivered', (messagesDelivered) => {{ '{' }}
+session.on('messages-delivered', (messagesDelivered) => {
 // Current user received delivered messages receipt.
 // All messages that are before latestMessageDelivered date on the same chatroom
 // can be considered as delivered as well
-// {{ '{' }}"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
+// {"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
 // "projectId":"d7bc5e8f-2f3b-427c-8b31-2c3d118fcd52",
 // "chatroomId":"72621fb3-f89c-4d39-a368-41448fd19858",
-// "latestMessageDelivered":1690311786401{{ '}' }}.
-{{ '}' }});
+// "latestMessageDelivered":1690311786401}.
+});
 
-session.on('message-sent', (messagesRead) => {{ '{' }}
+session.on('message-sent', (messagesRead) => {
 // Current user received delivered messages receipt.
 // All messages that are before latestMessageRead date on the same chatroom
 // can be considered as read as well
-// {{ '{' }}"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
+// {"organizationId":"4482e5b6-9273-4506-a281-f5c6ffc4796d",
 // "projectId":"d7bc5e8f-2f3b-427c-8b31-2c3d118fcd52",
 // "chatroomId":"72621fb3-f89c-4d39-a368-41448fd19858",
-// "latestMessageRead":1689028370275{{ '}' }}.
-{{ '}' }});
+// "latestMessageRead":1689028370275}.
+});
 ```
 
 ##### Manage Session Lifecycle
@@ -214,15 +214,15 @@ Creates a chatroom between the current user and another user identified by the o
 It also accepts a metadata object to store additional key-value data related to the chatroom.
 The callback function is called with the created chatroom and an error if something goes wrong.
 ```javascript
-session.createSingleChatroom(otherUserId, metadata, (chatroom, error) => {{ '{' }}
-if (error) {{ '{' }}
+session.createSingleChatroom(otherUserId, metadata, (chatroom, error) => {
+if (error) {
 // Handle the error
 console.error('Error creating chatroom:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the created chatroom
 console.log('Created chatroom:', chatroom);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 - `createGroupChatroom(name, participantIds, metadata, callback)`
@@ -231,15 +231,15 @@ Creates a group chatroom, adding the participants provided as input.
 It also accepts a metadata object to store additional key-value data related to the chatroom.
 The callback function is called with the created chatroom and an error if something goes wrong.
 ```javascript
-session.createGroupChatroom(name, participantIds, metadata, (chatroom, error) => {{ '{' }}
-if (error) {{ '{' }}
+session.createGroupChatroom(name, participantIds, metadata, (chatroom, error) => {
+if (error) {
 // Handle the error
 console.error('Error creating chatroom:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the created chatroom
 console.log('Created chatroom:', chatroom);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 - `getChatroomById(chatroomId, callback)`
@@ -247,15 +247,15 @@ console.log('Created chatroom:', chatroom);
 Retrieves a chatroom instance by its chatroomId.
 The callback function is called with the retrieved chatroom if successful or an error if something goes wrong.
 ```javascript
-session.getChatroomById(chatroomId, (chatroom, error) => {{ '{' }}
-if (error) {{ '{' }}
+session.getChatroomById(chatroomId, (chatroom, error) => {
+if (error) {
 // Handle the error
 console.error('Error retrieving chatroom:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the retrieved chatroom
 console.log('Retrieved chatroom:', chatroom);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 - `getChatroomsOfUser(callback)`
@@ -264,15 +264,15 @@ Fetches all chatrooms associated to current user.
 The callback function is called with the list of all chatrooms of the current user, if successful, or an error if
 something goes wrong.
 ```javascript
-session.getChatroomsOfUser((chatrooms, error) => {{ '{' }}
-if (error) {{ '{' }}
+session.getChatroomsOfUser((chatrooms, error) => {
+if (error) {
 // Handle the error
 console.error('Error retrieving user chatrooms:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the retrieved chatrooms
 console.log('Retrieved chatrooms:', chatrooms);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 ##### Interact with users
@@ -281,15 +281,15 @@ console.log('Retrieved chatrooms:', chatrooms);
 Fetches users associated with the given chatroom.
 The callback function is called with the list of users if successful or an error if something goes wrong.
 ```javascript
-session.getChatroomUsers(chatroomId, (users, error) => {{ '{' }}
-if (error) {{ '{' }}
+session.getChatroomUsers(chatroomId, (users, error) => {
+if (error) {
 // Handle the error
 console.error('Error retrieving users of chatroom:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the retrieved users
 console.log('Retrieved users:', users);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 - `getUsers(userIds, callback)`
@@ -297,15 +297,15 @@ console.log('Retrieved users:', users);
 Fetches users by their IDs.
 The callback function is called with the list of users if successful or an error if something goes wrong.
 ```javascript
-session.getUsers(userIds, (users, error) => {{ '{' }}
-if (error) {{ '{' }}
+session.getUsers(userIds, (users, error) => {
+if (error) {
 // Handle the error
 console.error('Error retrieving users:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the retrieved users
 console.log('Retrieved users:', users);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 ##### Manage Presence Subscriptions
@@ -315,15 +315,15 @@ Subscribes the current user to the presence events of the specified users.
 The callback function is called with the list of users with their current online status, indicating the successful
 subscription, or an error, if any.
 ```javascript
-session.subscribeToUsersPresence(userIds, (users, error) => {{ '{' }}
-if (error) {{ '{' }}
+session.subscribeToUsersPresence(userIds, (users, error) => {
+if (error) {
 // Handle the error
 console.error('Error subscribing to user presence:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the subscribed users
 console.log('Subscribed users:', subscribedUsers);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 - `unsubscribeFromUsersPresence(userIds, callback)`
@@ -331,15 +331,15 @@ console.log('Subscribed users:', subscribedUsers);
 Unsubscribes the current user from the presence events of the specified users.
 The callback function is called with an error, if any.
 ```javascript
-session.unsubscribeFromUsersPresence(userIds, (error) => {{ '{' }}
-if (error) {{ '{' }}
+session.unsubscribeFromUsersPresence(userIds, (error) => {
+if (error) {
 // Handle the error
 console.error('Error unsubscribing from user presence:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Handle successful unsubscription
 console.log('Unsubscribed from user presence');
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 - `unsubscribeFromAllUsersPresence(callback)`
@@ -347,15 +347,15 @@ console.log('Unsubscribed from user presence');
 Unsubscribes the current user from the presence events of all users they were subscribed to.
 The callback function is called with an error, if any.
 ```javascript
-session.unsubscribeFromAllUsersPresence((error) => {{ '{' }}
-if (error) {{ '{' }}
+session.unsubscribeFromAllUsersPresence((error) => {
+if (error) {
 // Handle the error
 console.error('Error unsubscribing from all user presence:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Handle successful unsubscription
 console.log('Unsubscribed from all user presence');
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 ##### Manage Messages Receipts
@@ -380,29 +380,29 @@ This will produce **messages-read** that users on the chatroom can consume
 // Pass the latest message read timestamp as input
 if an unexpected issue occurs.
 ```javascript
-chatroom.getMessages(from, limit, (messages, error) => {{ '{' }}
-if (error) {{ '{' }}
+chatroom.getMessages(from, limit, (messages, error) => {
+if (error) {
 // Handle the error
 console.error('Error retrieving messages:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the retrieved messages
 console.log('Retrieved messages:', messages);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 - `getUsers(callback)`
 Gets the users of the chatroom. The callback function is called with the list of users or an error, if any.
 ```javascript
-chatroom.getUsers((users, error) => {{ '{' }}
-if (error) {{ '{' }}
+chatroom.getUsers((users, error) => {
+if (error) {
 // Handle the error
 console.error('Error retrieving users:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the retrieved users
 console.log('Retrieved users:', users);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 - `sendChatMessage(text)`
@@ -414,16 +414,16 @@ chatroom.sendChatMessage('Hello, everyone!');
 Uploads an attachment file from the current user in the chatroom.
 ```javascript
 const file = document.getElementById('attachmentInput').files[0];
-chatroom.uploadFile(file, (message, error) => {{ '{' }}
-if (error) {{ '{' }}
+chatroom.uploadFile(file, (message, error) => {
+if (error) {
 // Handle the error
 console.error('Error uploading file:', error);
-{{ '}' }} else {{ '{' }}
+} else {
 // Process the uploaded message.
 // This message will contain the link of the uploaded attachment
 console.log('Uploaded message:', message);
-{{ '}' }}
-{{ '}' }});
+}
+});
 ```
 
 - `fireUserTyping()`
