@@ -1,18 +1,18 @@
-import { httpGet, httpPost } from './utils/http';
-import Transport from './Transport';
-import Chatroom from './Chatroom';
+import { httpGet, httpPost } from './utils/http.js';
+import Transport from './Transport.js';
+import Chatroom from './Chatroom.js';
 import { EventEmitter } from 'events';
-import User from './User';
-import { sdkConfig } from './utils/sdkConfig';
-import { log } from './utils/sdkLogger';
-import TokenManager from './TokenManager';
+import User from './User.js';
+import { sdkConfig } from './utils/sdkConfig.js';
+import { log } from './utils/sdkLogger.js';
+import TokenManager from './TokenManager.js';
 
 export default class Session extends EventEmitter {
 
     constructor(endpoint, apiKey, currentUser, config = {}) {
         super();
         sdkConfig.enableLogging = config.enableLogging || false;
-        endpoint = this._removeProtocol(_removeProtocol);
+        endpoint = this._removeProtocol(endpoint);
         const isSsl = !endpoint.startsWith('localhost') && !endpoint.startsWith('127.0.0.1');
         this.apiEndpoint = isSsl ? 'https://' + endpoint: 'http://' + endpoint;
         this.wsEndpoint = isSsl ? 'wss://' + endpoint + '/chat' : 'ws://' + endpoint + '/chat';

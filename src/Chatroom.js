@@ -1,9 +1,9 @@
-import { httpGet, httpPost, uploadFile } from './utils/http';
-import { generateUUID } from './utils/util';
+import { httpGet, httpPost, uploadFile } from './utils/http.js';
+import { generateUUID } from './utils/util.js';
 import { EventEmitter } from 'events';
-import User from './User';
-import { log, logError } from './utils/sdkLogger';
-import APIError from './APIError';
+import User from './User.js';
+import { log } from './utils/sdkLogger.js';
+import APIError from './APIError.js';
 
 export default class Chatroom extends EventEmitter {
 

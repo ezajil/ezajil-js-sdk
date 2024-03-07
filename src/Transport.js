@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { log, logError } from './utils/sdkLogger';
+import { log, logError } from './utils/sdkLogger.js';
 
 const WS_EVENTS = {
     OPEN: 'open',

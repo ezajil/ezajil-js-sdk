@@ -1,11 +1,9 @@
-import Transport from './Transport';
-import Session from './Session';
-import Chatroom from './Chatroom';
-import User from './User';
+import Session from './Session.js';
+import Chatroom from './Chatroom.js';
+import User from './User.js';
 
 export {
     User,
-    // Transport,
     Session,
     Chatroom
 };

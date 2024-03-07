@@ -1,14 +1,20 @@
 {
   "name": "ezajil-js-sdk",
-  "version": "1.0.144",
+  "version": "1.0.151",
   "description": "Ezajil Chat Application SDK",
+  "type": "module",
   "main": "dist/ezajil-sdk.min.js",
+  "module": "dist/ezajil-sdk.min.js",
   "types": "dist/ezajil-sdk.d.ts",
   "files": [
     "dist/ezajil-sdk.min.js",
-    "dist/ezajil-sdk.min.js.map",
     "dist/ezajil-sdk.d.ts"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/ezajil-sdk.min.js"
+    }
+  },
   "scripts": {
     "start": "node src/index.js",
     "lint": "eslint src",
@@ -54,7 +60,6 @@
     "webpack-obfuscator": "^3.5.1"
   },
   "dependencies": {
-    "crypto-js": "^4.1.1"
   },
   "volta": {
     "node": "16.20.1",

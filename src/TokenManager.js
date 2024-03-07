@@ -1,5 +1,4 @@
-import { httpPost } from './utils/http';
-import { log, logError } from './utils/sdkLogger';
+import { httpPost } from './utils/http.js';
 
 export default class TokenManager {
 

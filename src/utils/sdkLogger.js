@@ -1,4 +1,4 @@
-import { sdkConfig } from './sdkConfig';
+import { sdkConfig } from './sdkConfig.js';
 
 export function log(message) {
     if (sdkConfig.enableLogging) {

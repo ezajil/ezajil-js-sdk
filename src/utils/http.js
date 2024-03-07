@@ -1,6 +1,5 @@
-import APIError from '../APIError';
-import { logError } from './sdkLogger';
-import { generateUID } from './util';
+import APIError from '../APIError.js';
+import { generateUID } from './util.js';
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
 export function httpGet(url, apiKey, authSupplier, queryParams = {}) {

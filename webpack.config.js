@@ -1,16 +1,24 @@
-const path = require('path');
-const CopyPlugin = require('copy-webpack-plugin');
+import path from 'path';
+import CopyPlugin from 'copy-webpack-plugin';
+import { fileURLToPath } from 'url';
 
-module.exports = {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export default {
   mode: 'production',
   entry: './src/index.js',
-  devtool: 'source-map',
+  // devtool: 'source-map',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'ezajil-sdk.min.js',
     library: 'ezajil',
-    libraryTarget: 'umd',
-    umdNamedDefine: true,
+    library: {
+      type: 'module',
+    },
+  },
+  experiments: {
+    outputModule: true,
   },
   resolve: {
     extensions: ['.js', '.ts'],
