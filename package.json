@@ -1,7 +1,7 @@
 {
   "name": "ezajil-js-sdk",
-  "version": "1.0.151",
-  "description": "Ezajil Chat Application SDK",
+  "version": "1.0.0",
+  "description": "ezajil javascript SDK - The Real-Time Chat and Presence Tracking Solution",
   "type": "module",
   "main": "dist/ezajil-sdk.min.js",
   "module": "dist/ezajil-sdk.min.js",
@@ -25,20 +25,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/omarkad2/ezajil-js-sdk.git"
+    "url": "git+https://github.com/ezajil/ezajil-js-sdk.git"
   },
   "keywords": [
     "ezajil",
     "sdk",
     "chat",
+    "presence",
     "javascript"
   ],
-  "author": "Oussama",
+  "author": "Markware",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/omarkad2/ezajil-js-sdk/issues"
+    "url": "https://ezajil.io/contact"
   },
-  "homepage": "https://github.com/omarkad2/ezajil-js-sdk#readme",
+  "homepage": "https://ezajil.io/documentation/javascript",
   "devDependencies": {
     "@babel/core": "^7.22.8",
     "@babel/preset-env": "^7.23.2",
