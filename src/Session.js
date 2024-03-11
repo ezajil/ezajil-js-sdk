@@ -6,6 +6,7 @@ import User from './User.js';
 import { sdkConfig } from './utils/sdkConfig.js';
 import { log } from './utils/sdkLogger.js';
 import TokenManager from './TokenManager.js';
+import PageResult from './PageResult.js';
 
 export default class Session extends EventEmitter {
 
@@ -14,7 +15,7 @@ export default class Session extends EventEmitter {
         sdkConfig.enableLogging = config.enableLogging || false;
         endpoint = this._removeProtocol(endpoint);
         const isSsl = !endpoint.startsWith('localhost') && !endpoint.startsWith('127.0.0.1');
-        this.apiEndpoint = isSsl ? 'https://' + endpoint: 'http://' + endpoint;
+        this.apiEndpoint = isSsl ? 'https://' + endpoint : 'http://' + endpoint;
         this.wsEndpoint = isSsl ? 'wss://' + endpoint + '/chat/v1' : 'ws://' + endpoint + '/chat/v1';
         this.apiKey = apiKey;
         this.currentUser = currentUser;
@@ -25,7 +26,7 @@ export default class Session extends EventEmitter {
     _removeProtocol(url) {
         return url.replace(/^[a-zA-Z]+:\/\//, '');
     }
-    
+
     connect() {
         this._bindTransportEvents();
         this.transport.connect();
@@ -90,149 +91,165 @@ export default class Session extends EventEmitter {
         return this.transport.isOpen();
     }
 
-    createSingleChatroom(name, participantId, metadata, callback) {
+    createSingleChatroom(name, participantId, metadata) {
         const body = JSON.stringify({ 'name': name, 'participantId': participantId, 'metadata': metadata });
-        httpPost(`${this.apiEndpoint}/api/v1/chatrooms/single`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
+        return httpPost(`${this.apiEndpoint}/api/v1/chatrooms/single`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .then(response => {
                 response.json().then(data => {
-                    const chatroom = new Chatroom(this, data.chatroomId, data.name, data.latestMessage,
+                    return new Chatroom(this, data.chatroomId, data.name, data.latestMessage,
                         data.creationDate, data.creatorId, data.single, data.users, data.metadata);
-                    callback(chatroom, null);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
-    createGroupChatroom(name, participantIds, metadata, callback) {
+    createGroupChatroom(name, participantIds, metadata) {
         const body = JSON.stringify({ 'name': name, 'participantIds': participantIds, 'metadata': metadata });
-        httpPost(`${this.apiEndpoint}/api/v1/chatrooms/group`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
+        return httpPost(`${this.apiEndpoint}/api/v1/chatrooms/group`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .then(response => {
                 response.json().then(data => {
-                    const chatroom = new Chatroom(this, data.chatroomId, data.name, 
+                    return new Chatroom(this, data.chatroomId, data.name,
                         data.latestMessage, data.creationDate, data.creatorId,
                         data.single, data.users, data.metadata, null);
-                    callback(chatroom, null);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
-    getChatroom(chatroomId, callback) {
-        httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${chatroomId}`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
+    getChatroom(chatroomId) {
+        return httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${chatroomId}`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
             .then(response => {
                 response.json().then(data => {
-                    const chatroom = new Chatroom(this, data.chatroomId, data.name, 
+                    return new Chatroom(this, data.chatroomId, data.name,
                         data.latestMessage, data.creationDate, data.creatorId, data.single,
                         data.users, data.metadata, null);
-                    callback(chatroom, null);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
-    getChatroomsOfUser(callback, pagingState = null, limit = null) {
+    getChatroomsOfUser(pagingState = null, limit = null) {
         httpGet(`${this.apiEndpoint}/api/v1/chatrooms/latest`, this.apiKey, (refresh) => this.tokenManager.get(refresh), { pagingState: pagingState, limit: limit })
             .then(response => {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
                         if (result.single) {
-                            return new Chatroom(this, result.chatroomId, result.users[0], 
-                                result.latestMessage, result.creationDate, result.creatorId, 
+                            return new Chatroom(this, result.chatroomId, result.users[0],
+                                result.latestMessage, result.creationDate, result.creatorId,
                                 result.single, result.users, result.metadata, result.lastJoined);
                         }
                         return new Chatroom(this, result.chatroomId, result.name, result.latestMessage,
-                            result.creationDate, result.creatorId, result.single, result.users, 
+                            result.creationDate, result.creatorId, result.single, result.users,
                             result.metadata, result.lastJoined);
                     });
-                    callback(chatrooms, data.pagingState, data.totalResults, null);
+                    return new PageResult(chatrooms, data.pagingState, data.totalResults);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
 
-    getSingleChatroomsOfUser(callback, pagingState = null, limit = null) {
+    getSingleChatroomsOfUser(pagingState = null, limit = null) {
         httpGet(`${this.apiEndpoint}/api/v1/chatrooms/latest/single`, this.apiKey, (refresh) => this.tokenManager.get(refresh), { pagingState: pagingState, limit: limit })
             .then(response => {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
-                        return new Chatroom(this, result.chatroomId, result.name, result.latestMessage, 
-                            result.creationDate, result.creatorId, result.single, result.users, 
+                        return new Chatroom(this, result.chatroomId, result.name, result.latestMessage,
+                            result.creationDate, result.creatorId, result.single, result.users,
                             result.metadata, result.lastJoined);
                     });
-                    callback(chatrooms, data.pagingState, data.totalResults, null);
+                    return new PageResult(chatrooms, data.pagingState, data.totalResults);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
-    getGroupChatroomsOfUser(callback, pagingState = null, limit = null) {
+    getGroupChatroomsOfUser(pagingState = null, limit = null) {
         httpGet(`${this.apiEndpoint}/api/v1/chatrooms/latest/group`, this.apiKey, (refresh) => this.tokenManager.get(refresh), { pagingState: pagingState, limit: limit })
             .then(response => {
                 response.json().then(data => {
                     const chatrooms = data.results.map(result => {
-                        return new Chatroom(this, result.chatroomId, result.name, 
-                            result.latestMessage, result.creationDate, result.creatorId, 
+                        return new Chatroom(this, result.chatroomId, result.name,
+                            result.latestMessage, result.creationDate, result.creatorId,
                             result.single, result.users, result.metadata, result.lastJoined);
                     });
-                    callback(chatrooms, data.pagingState, data.totalResults, null);
+                    return new PageResult(chatrooms, data.pagingState, data.totalResults, null);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
-    getChatroomUsers(chatroomId, callback) {
+    getChatroomUsers(chatroomId) {
         httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${chatroomId}/users`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
             .then(response => {
                 response.json().then(data => {
-                    const users = data.map(result =>
+                    return data.map(result =>
                         new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
                             result.lastSeen, result.online));
-                    callback(users, null);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
-    getUsers(userIds, callback) {
+    getUsers(userIds) {
         const body = JSON.stringify({ 'userIds': userIds });
         httpPost(`${this.apiEndpoint}/api/v1/users/list`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .then(response => {
                 response.json().then(data => {
-                    const users = data.map(result =>
+                    return data.map(result =>
                         new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
                             result.lastSeen, result.online));
-                    callback(users, null);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
-    subscribeToUsersPresence(userIds, callback) {
+    subscribeToUsersPresence(userIds) {
         const body = JSON.stringify({ 'userIds': userIds });
         httpPost(`${this.apiEndpoint}/api/v1/users/subscribe`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
             .then(response => {
                 response.json().then(data => {
-                    const users = data.map(result =>
+                    return data.map(result =>
                         new User(result.userId, result.screenName, result.avatar, result.email, result.metadata,
                             result.lastSeen, result.online));
-                    callback(users, null);
                 });
             })
 
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
-    unsubscribeFromUsersPresence(userIds, callback) {
+    unsubscribeFromUsersPresence(userIds) {
         const body = JSON.stringify({ 'userIds': userIds });
         httpPost(`${this.apiEndpoint}/api/v1/users/unsubscribe`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
-    unsubscribeFromAllUsersPresence(callback) {
+    unsubscribeFromAllUsersPresence() {
         const body = JSON.stringify({});
         httpPost(`${this.apiEndpoint}/api/v1/users/unsubscribe-all`, this.apiKey, (refresh) => this.tokenManager.get(refresh), body)
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err;
+            });
     }
 
     fireUserTyping(chatroomId) {

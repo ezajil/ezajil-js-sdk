@@ -57,41 +57,36 @@ export default class Chatroom extends EventEmitter {
         this.removeAllListeners();
     }
 
-    getMessages(callback, pagingState = null, limit = null) {
-        httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/messages`, this.apiKey, (refresh) => this.tokenManager.get(refresh), {
+    getMessages(pagingState = null, limit = null) {
+        return httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/messages`, this.apiKey, (refresh) => this.tokenManager.get(refresh), {
             pagingState: pagingState,
             limit: limit,
         })
-            .then(response => {
-                response.json().then(data => {
-                    callback(data, null);
-                });
-            })
+            .then(response => response.json())
             .catch(err => {
-                callback(null, err);
+                throw err;
             });
     }
 
-    getUsers(callback) {
-        httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/users`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
+    getUsers() {
+        return httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/users`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
             .then(response => {
                 response.json().then(data => {
-                    const users = data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email,
+                    return data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email,
                         result.metadata, result.lastSeen, result.online));
-                    callback(users, null);
                 });
             })
-            .catch(err => callback(null, err));
+            .catch(err => {
+                throw err
+            });
     }
 
-    join(callback) {
-        httpPost(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/join`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
-            .then(response => {
-                response.json().then(data => {
-                    callback(data, null);
-                });
-            })
-            .catch(err => callback(null, err));
+    join() {
+        return httpPost(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/join`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
+            .then(response => response.json())
+            .catch(err => {
+                throw err;
+            });
     }
 
     sendChatMessage(textMessage) {
@@ -116,37 +111,40 @@ export default class Chatroom extends EventEmitter {
         this.transport.send({ event: 'chat-message', payload: message });
     }
 
-    uploadFile(file, callback) {
-        const sizeInMB = file.size / (1024 * 1024);
-        if (sizeInMB > 20) {
-            callback(null, new APIError(400, 'The maximum upload size is 20MB'));
-            return;
-        }
-        const author = this.currentUser;
-        const messageId = generateUUID();
-        let formData = new FormData();
-        formData.append('chatroomId', this.chatroomId);
-        formData.append('author', author.userId);
-        formData.append('messageId', messageId);
-        formData.append('file', file);
-        uploadFile(`${this.apiEndpoint}/dam/upload`, this.apiKey, (refresh) => this.tokenManager.get(refresh), formData)
-            .then(response => {
-                response.json().then(uploadResult => {
-                    let message = {
-                        'chatroomId': this.chatroomId,
-                        'messageId': messageId,
-                        'author': author.userId,
-                        'mediaUrls': uploadResult.links,
-                        'preview': uploadResult.preview,
-                        'screenName': author.screenName,
-                        'users': this.participantIds,
-                        'sendingDate': uploadResult.sendingDate,
-                    };
-                    this._sendTextMessage(message);
-                    callback(message, null);
-                });
-            })
-            .catch((err) => callback(null, err));
+    uploadFile(file) {
+        return new Promise((resolve, reject) => {
+            const sizeInMB = file.size / (1024 * 1024);
+            if (sizeInMB > 20) {
+                reject(new APIError(400, 'The maximum upload size is 20MB'));
+                return;
+            }
+            const author = this.currentUser;
+            const messageId = generateUUID();
+            let formData = new FormData();
+            formData.append('chatroomId', this.chatroomId);
+            formData.append('author', author.userId);
+            formData.append('messageId', messageId);
+            formData.append('file', file);
+
+            uploadFile(`${this.apiEndpoint}/dam/upload`, this.apiKey, (refresh) => this.tokenManager.get(refresh), formData)
+                .then(response => {
+                    response.json().then(uploadResult => {
+                        let message = {
+                            'chatroomId': this.chatroomId,
+                            'messageId': messageId,
+                            'author': author.userId,
+                            'mediaUrls': uploadResult.links,
+                            'preview': uploadResult.preview,
+                            'screenName': author.screenName,
+                            'users': this.participantIds,
+                            'sendingDate': uploadResult.sendingDate,
+                        };
+                        this._sendTextMessage(message);
+                        resolve(message);
+                    }).catch(err => reject(err));
+                })
+                .catch((err) => reject(err));
+        });
     }
 
     fireUserTyping() {
