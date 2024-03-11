@@ -58,7 +58,7 @@ export default class Chatroom extends EventEmitter {
     }
 
     getMessages(callback, pagingState = null, limit = null) {
-        httpGet(`${this.apiEndpoint}/api/chatrooms/${this.chatroomId}/messages`, this.apiKey, (refresh) => this.tokenManager.get(refresh), {
+        httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/messages`, this.apiKey, (refresh) => this.tokenManager.get(refresh), {
             pagingState: pagingState,
             limit: limit,
         })
@@ -73,7 +73,7 @@ export default class Chatroom extends EventEmitter {
     }
 
     getUsers(callback) {
-        httpGet(`${this.apiEndpoint}/api/chatrooms/${this.chatroomId}/users`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
+        httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/users`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
             .then(response => {
                 response.json().then(data => {
                     const users = data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email,
@@ -85,7 +85,7 @@ export default class Chatroom extends EventEmitter {
     }
 
     join(callback) {
-        httpPost(`${this.apiEndpoint}/api/chatrooms/${this.chatroomId}/join`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
+        httpPost(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/join`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
             .then(response => {
                 response.json().then(data => {
                     callback(data, null);

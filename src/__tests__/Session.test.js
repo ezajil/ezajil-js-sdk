@@ -10,7 +10,7 @@ fetchMock.enableMocks();
 describe('Session Class', () => {
     let server;
     beforeEach(() => {
-        server = new WebSocket('ws://localhost:1234/chat');
+        server = new WebSocket('ws://localhost:1234/chat/v1');
         server.on('error', (error) => {
             console.error('WebSocket error:', error);
         });
@@ -119,7 +119,7 @@ function mockBadRequestAuth() {
     fetchMock.mockResponseOnce(JSON.stringify({
         title: 'One or more request parameters are not valid',
         status: 400,
-        instance: 'http://localhost:8080/api/users/auth',
+        instance: 'http://localhost:8080/api/v1/users/auth',
         'invalid-parameters': [{
             reason: 'must not be blank',
             property: 'userId',
