@@ -70,11 +70,10 @@ export default class Chatroom extends EventEmitter {
 
     getUsers() {
         return httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/users`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
-            .then(response => {
-                response.json().then(data => {
-                    return data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email,
-                        result.metadata, result.lastSeen, result.online));
-                });
+            .then(response => response.json())
+            .then(data => {
+                return data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email,
+                    result.metadata, result.lastSeen, result.online));
             })
             .catch(err => {
                 throw err
