@@ -12,7 +12,7 @@ export default class TokenManager {
 
     fetchAccessToken() {
         const body = JSON.stringify(this.currentUser);
-        return httpPost(`${this.apiEndpoint}/api/users/auth`, this.apiKey, null, body)
+        return httpPost(`${this.apiEndpoint}/api/v1/users/auth`, this.apiKey, null, body)
             .then(response => {
                 return response.json().then(data => {
                     return Promise.resolve(data.accessToken);

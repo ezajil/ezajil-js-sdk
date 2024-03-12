@@ -67,7 +67,7 @@ declare module 'ezajil-js-sdk' {
         details: string | null;
     }
 
-    export type PageResult<T> = {
+    export class PageResult<T> {
         results: T[];
         pagingState: string | null;
         totalResults: number;
@@ -84,11 +84,10 @@ declare module 'ezajil-js-sdk' {
         metadata: Map<string, string>;
         open(): void;
         close(): void;
-        getMessages(callback: (messages: PageResult<Message> | null, error: APIError | null) => void, 
-            pagingState?: string|null, limit?: number): void;
-        getUsers(callback: (users: User[] | null, error: APIError | null) => void): void;
+        getMessages(pagingState?: string|null, limit?: number): Promise<PageResult<Message>>;
+        getUsers(): Promise<User[]>;
         sendChatMessage(textMessage: string): Message | null;
-        uploadFile(file: File, callback: (messages: Message | null, error: APIError | null) => void): void;
+        uploadFile(file: File): Promise<Message>;
         fireUserTyping(): void;
         markMessageAsDelivered(latestMessageDeliveredTimestamp: number): void;
         markMessageAsRead(latestMessageReadTimestamp: number): void;
@@ -118,22 +117,19 @@ declare module 'ezajil-js-sdk' {
         constructor(endpoint: string, apiKey: string, currentUser: User, sdkConfig: SDKConfig);
         connect(): void;
         isOpen(): boolean;
-        createSingleChatroom(name: string, participantId: string, metadata: Map<string, string>, callback: (chatroom: Chatroom | null, error: APIError | null) => void): void;
-        createGroupChatroom(name: string, participantIds: string[], metadata: Map<string, string>, callback: (chatroom: Chatroom | null, error: APIError | null) => void): void;
-        getChatroom(chatroomId: string, callback: (chatroom: Chatroom | null, error: APIError | null) => void): void;
-        getChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, pagingState: string|null, totalResults: number, error: APIError | null) => void, 
-            pagingState?: string|null, limit?: number): void;
-        getSingleChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, pagingState: string|null, totalResults: number, error: APIError | null) => void,
-            pagingState?: string|null, limit?: number): void;
+        createSingleChatroom(name: string, participantId: string, metadata: Map<string, string>): Promise<Chatroom>;
+        createGroupChatroom(name: string, participantIds: string[], metadata: Map<string, string>): Promise<Chatroom>;
+        getChatroom(chatroomId: string): Promise<Chatroom>;
+        getChatroomsOfUser(pagingState?: string|null, limit?: number): Promise<PageResult<Chatroom>>;
+        getSingleChatroomsOfUser(pagingState?: string|null, limit?: number): Promise<PageResult<Chatroom>>;
         getName(chatroom: any): string;
-        getGroupChatroomsOfUser(callback: (chatrooms: Chatroom[] | null, pagingState: string|null, totalResults: number, error: APIError | null) => void,
-            pagingState?: string|null, limit?: number): void;
-        getChatroomUsers(chatroomId: string, callback: (users: User[] | null, error: APIError | null) => void): void;
-        getUsers(userIds: string[], callback: (users: User[] | null, error: APIError | null) => void): void;
-        subscribeToUsersPresence(userIds: string[], callback: (users: User[] | null, error: APIError | null) => void): void;
-        subscribeToUsersPresence(users: User[], callback: (users: User[] | null, error: APIError | null) => void): void;
-        unsubscribeFromUsersPresence(userIds: string[], callback: (error: APIError | null) => void): void;
-        unsubscribeFromAllUsersPresence(callback: (error: APIError | null) => void): void;
+        getGroupChatroomsOfUser(pagingState?: string|null, limit?: number): Promise<PageResult<Chatroom>>;
+        getChatroomUsers(chatroomId: string): Promise<User[]>;
+        getUsers(userIds: string[]): Promise<User[]>;
+        subscribeToUsersPresence(userIds: string[]): Promise<User[]>;
+        subscribeToUsersPresence(users: User[]): Promise<User[]>;
+        unsubscribeFromUsersPresence(userIds: string[]): Promise<void>;
+        unsubscribeFromAllUsersPresence(): Promise<void>;
         fireUserTyping(chatroomId: string): void;
         markMessageAsDelivered(chatroomId: string, latestMessageDeliveredTimestamp: number): void;
         markMessageAsRead(chatroomId: string, latestMessageReadTimestamp: number): void;
