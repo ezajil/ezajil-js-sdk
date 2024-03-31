@@ -11,12 +11,10 @@ permissions:
   contents: write
 jobs:
   release:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-        with:
-          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -51,3 +49,5 @@ jobs:
 
       - name: Publish Package
         run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
