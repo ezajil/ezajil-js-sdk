@@ -52,6 +52,9 @@ jobs:
           prerelease: false
           tag_name: ${{ steps.get_version.outputs.version }}
 
+      - name: Authenticate with npm
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
       - name: Publish Package
         run: npm publish
         env:
