@@ -21,6 +21,17 @@ jobs:
         with:
           node-version: 16
 
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          # Define the path to cache
+          path: ~/.npm
+          # Define the key for caching and restoring
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          # Define the restore key for cache retrieval
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install Dependencies & Build
         run: npm ci && npm run build
 
