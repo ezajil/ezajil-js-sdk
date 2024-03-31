@@ -1,6 +1,6 @@
 {
   "name": "ezajil-js-sdk",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "ezajil javascript SDK - The Real-Time Chat and Presence Tracking Solution",
   "type": "module",
   "main": "dist/ezajil-sdk.min.js",
@@ -60,8 +60,7 @@
     "webpack-cli": "^5.1.4",
     "webpack-obfuscator": "^3.5.1"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "volta": {
     "node": "16.20.1",
     "npm": "8.19.4"
