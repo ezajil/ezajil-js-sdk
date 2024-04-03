@@ -14,7 +14,6 @@ export default class Chatroom extends EventEmitter {
         this.currentUser = session.currentUser;
         this.tokenManager = session.tokenManager;
         this.apiEndpoint = session.apiEndpoint;
-        this.apiKey = session.apiKey;
         this.chatroomId = chatroomId;
         this.name = name;
         this.latestMessage = latestMessage;
@@ -58,7 +57,7 @@ export default class Chatroom extends EventEmitter {
     }
 
     getMessages(pagingState = null, limit = null) {
-        return httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/messages`, this.apiKey, (refresh) => this.tokenManager.get(refresh), {
+        return httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/messages`, (refresh) => this.tokenManager.get(refresh), {
             pagingState: pagingState,
             limit: limit,
         })
@@ -69,7 +68,7 @@ export default class Chatroom extends EventEmitter {
     }
 
     getUsers() {
-        return httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/users`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
+        return httpGet(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/users`, (refresh) => this.tokenManager.get(refresh))
             .then(response => response.json())
             .then(data => {
                 return data.map(result => new User(result.userId, result.screenName, result.avatarUrl, result.email,
@@ -81,7 +80,7 @@ export default class Chatroom extends EventEmitter {
     }
 
     join() {
-        return httpPost(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/join`, this.apiKey, (refresh) => this.tokenManager.get(refresh))
+        return httpPost(`${this.apiEndpoint}/api/v1/chatrooms/${this.chatroomId}/join`, (refresh) => this.tokenManager.get(refresh))
             .then(response => response.json())
             .catch(err => {
                 throw err;
@@ -125,7 +124,7 @@ export default class Chatroom extends EventEmitter {
             formData.append('messageId', messageId);
             formData.append('file', file);
 
-            uploadFile(`${this.apiEndpoint}/dam/upload`, this.apiKey, (refresh) => this.tokenManager.get(refresh), formData)
+            uploadFile(`${this.apiEndpoint}/dam/upload`, (refresh) => this.tokenManager.get(refresh), formData)
                 .then(response => {
                     response.json().then(uploadResult => {
                         let message = {

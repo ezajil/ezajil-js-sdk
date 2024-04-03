@@ -1,8 +1,7 @@
 import APIError from '../APIError.js';
-import { generateUID } from './util.js';
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-export function httpGet(url, apiKey, authSupplier, queryParams = {}) {
+export function httpGet(url, authSupplier, queryParams = {}) {
     let apiUrl = url;
 
     // Add query parameters to the URL if provided
@@ -19,10 +18,10 @@ export function httpGet(url, apiKey, authSupplier, queryParams = {}) {
         mode: 'cors',
         cache: 'default'
     };
-    return callAPI(apiUrl, apiKey, authSupplier, options);
+    return callAPI(apiUrl, authSupplier, options);
 }
 
-export function httpPost(url, apiKey, authSupplier, body, queryParams = {}) {
+export function httpPost(url, authSupplier, body, queryParams = {}) {
     let apiUrl = url;
     // Add query parameters to the URL if provided
     if (Object.keys(queryParams).length > 0) {
@@ -40,33 +39,29 @@ export function httpPost(url, apiKey, authSupplier, body, queryParams = {}) {
         mode: 'cors',
         body: body
     };
-    return callAPI(apiUrl, apiKey, authSupplier, options);
+    return callAPI(apiUrl, authSupplier, options);
 }
 
-export function uploadFile(apiUrl, apiKey, authSupplier, body) {
+export function uploadFile(apiUrl, authSupplier, body) {
     var options = {
         method: 'POST',
         headers: new Headers(),
         mode: 'cors',
         body: body
     };
-    return callAPI(apiUrl, apiKey, authSupplier, options);
+    return callAPI(apiUrl, authSupplier, options);
 }
 
-function callAPI(url, apiKey, authSupplier, options, forceTokenRefresh = false) {
-    options.headers.append('uid', generateUID());
-    options.headers.append('api-key', apiKey);
+function callAPI(url, authSupplier, options, forceTokenRefresh = false) {
     if (authSupplier) {
         return authSupplier(forceTokenRefresh).then(accessToken => {
             options.headers.append('Authorization', `Bearer ${accessToken}`);
             return fetchWithTimeout(url, options);
         }).then(response => {
             if (!response.ok) {
-                if (response.status === 401) {
-                    options.headers.delete('uid');
-                    options.headers.delete('api-key');
+                if (response.status === 401 && !forceTokenRefresh) {
                     options.headers.delete('Authorization');
-                    return callAPI(url, apiKey, authSupplier, options, true);
+                    return callAPI(url, authSupplier, options, true);
                 }
                 return handleFetchError(response);
             }

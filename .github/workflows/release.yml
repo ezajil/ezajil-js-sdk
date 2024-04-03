@@ -6,6 +6,10 @@ on:
       changelog:
         required: true
         description: Changelog
+      versionType:
+        required: true
+        description: Version type (major, minor, patch)
+        default: 'patch'
 
 permissions:
   contents: write
@@ -37,7 +41,7 @@ jobs:
 
       - name: Get Current Version
         id: get_version
-        run: echo "::set-output name=version::$(npm --no-git-tag-version version patch)"
+        run: echo "::set-output name=version::$(npm --no-git-tag-version version ${{ github.event.inputs.versionType }})"
 
       - name: Increment Version and Update Changelog
         run: |
