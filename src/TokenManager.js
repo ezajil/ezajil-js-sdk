@@ -1,32 +1,37 @@
+import APIError from './APIError.js';
 import { httpPost } from './utils/http.js';
 
 export default class TokenManager {
 
-    constructor(session) {
-        this.apiEndpoint = session.apiEndpoint;
-        this.appCredentials = session.appCredentials;
-        this.apiKey = session.apiKey;
-        this.currentUser = session.currentUser;
+    constructor() {
         this.accessToken = null;
+        this.fetchTokenCallback = null;
     }
 
-    fetchAccessToken() {
-        const body = JSON.stringify(this.currentUser);
-        return httpPost(`${this.apiEndpoint}/api/v1/users/auth`, this.apiKey, null, body)
-            .then(response => {
-                return response.json().then(data => {
-                    return Promise.resolve(data.accessToken);
-                });
-            });
+    setToken(accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    setFetchTokenCallback(callback) {
+        this.fetchTokenCallback = callback;
     }
 
     get(forceTokenRefresh = false) {
         if (this.accessToken && !forceTokenRefresh) {
             return Promise.resolve(this.accessToken);
         }
-        return this.fetchAccessToken().then(accessToken => {
+        if (!this.fetchTokenCallback) {
+            return Promise.reject(new APIError(401, "Authorization failed: make sure to define a valid token or a correct callback"));
+        }
+        return this.fetchTokenCallback().then(accessToken => {
+            if (!accessToken) {
+                // Handle the case where the callback does not return an access token
+                throw new APIError(401, "Authorization failed: the token callback did not return a valid token");
+            }
             this.accessToken = accessToken;
             return accessToken;
+        }).catch(error => {
+            throw error instanceof APIError ? error : new APIError(error.status, `Error fetching token: ${error.message}`);
         });
     }
 }
