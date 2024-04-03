@@ -2,3 +2,4 @@
 - New User factory method
 Init
 Init
+Update Auth Process 
